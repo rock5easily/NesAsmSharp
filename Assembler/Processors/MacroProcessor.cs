@@ -81,44 +81,28 @@ namespace NesAsmSharp.Assembler.Processors
 
         public NesAsmMacro MacroLook(ref int ip)
         {
-            NesAsmMacro ptr;
             char c;
-            int hash;
-            int l;
-            var sb = new StringBuilder();
+            char[] buf = new char[Definition.MACROSZ + 1];
 
             /* calculate the symbol hash value and check syntax */
-            l = 0;
-            hash = 0;
+            var l = 0;
             for (;;)
             {
                 c = ctx.PrLnBuf[ip];
                 if (c == '\0' || c == ' ' || c == '\t' || c == ';') break;
                 if (!CharUtil.IsAlNum(c) && c != '_') return null;
-                if (l == 0)
-                {
-                    if (char.IsDigit(c)) return null;
-                }
-                if (l == 31) return null;
-                sb.Append(c);
-                l++;
-                hash += c;
-                hash = (hash << 3) + (hash >> 5) + c;
+                if (l == 0 && char.IsDigit(c)) return null;
+                if (l == Definition.MACROSZ) return null;
+                buf[l++] = c;
                 ip++;
             }
-            var name = sb.ToString();
-            hash &= 0xFF;
+            buf[l] = '\0';
+
+            var name = buf.ToStringFromNullTerminated();
 
             /* browse the hash table */
-            ptr = ctx.MacroTbl[hash];
-            while (ptr != null)
-            {
-                if (name == ptr.Name) break;
-                ptr = ptr.Next;
-            }
-
             /* return result */
-            return ptr;
+            return (ctx.MacroTbl.ContainsKey(name)) ? ctx.MacroTbl[name] : null;
         }
 
         /* extract macro arguments */
@@ -345,15 +329,11 @@ namespace NesAsmSharp.Assembler.Processors
                 return 0;
             }
 
-            /* calculate symbol hash value */
-            var hash = symPr.SymHash();
-
             /* allocate a macro struct */
             var mptr = new NesAsmMacro();
             /* initialize it */
             mptr.Name = symstr;
-            mptr.Next = ctx.MacroTbl[hash];
-            ctx.MacroTbl[hash] = mptr;
+            ctx.MacroTbl[symstr] = mptr;
             ctx.MPtr = mptr;
             ctx.MLPtr = null;
 

@@ -59,20 +59,15 @@ namespace NesAsmSharp.Assembler.Processors
         /// <returns></returns>
         public int FuncLook()
         {
-            int hash;
             var symstr = ctx.Symbol.ToStringFromNullTerminated();
 
             /* search the function in the hash table */
-            hash = symPr.SymHash();
-            ctx.FuncPtr = ctx.FuncTbl[hash];
-            while (ctx.FuncPtr != null)
+            if (ctx.FuncTbl.ContainsKey(symstr))
             {
-                if (symstr == ctx.FuncPtr.Name) break;
-                ctx.FuncPtr = ctx.FuncPtr.Next;
+                ctx.FuncPtr = ctx.FuncTbl[symstr];
+                /* ok */
+                return 1;
             }
-
-            /* ok */
-            if (ctx.FuncPtr != null) return 1;
 
             /* didn't find a function with this name */
             return 0;
@@ -85,8 +80,6 @@ namespace NesAsmSharp.Assembler.Processors
         /// <returns></returns>
         public int FuncInstall(int ip)
         {
-            int hash;
-
             /* mark the function name as reserved */
             ctx.LablPtr.Type = SymbolFlag.FUNC;
             var symstr = ctx.Symbol.ToStringFromNullTerminated();
@@ -102,15 +95,13 @@ namespace NesAsmSharp.Assembler.Processors
             if (FuncExtract(ip) == -1) return 0;
 
             /* allocate a new func struct */
-            ctx.FuncPtr = new NesAsmFunc();
+            var func = new NesAsmFunc();
             /* initialize it */
-            ctx.FuncPtr.Name = symstr;
-            ctx.FuncPtr.Line.CopyAsNullTerminated(ctx.FuncLine);
+            func.Name = symstr;
+            func.Line.CopyAsNullTerminated(ctx.FuncLine);
 
-            hash = symPr.SymHash();
-            ctx.FuncPtr.Next = ctx.FuncTbl[hash];
-            ctx.FuncTbl[hash] = ctx.FuncPtr;
-
+            ctx.FuncTbl[symstr] = func;
+            ctx.FuncPtr = func;
             /* ok */
             return 1;
         }

@@ -295,7 +295,6 @@ namespace NesAsmSharp.Assembler.Processors
             NesAsmSymbol sym;
             NesAsmSymbol local;
             NesAsmProc group;
-            int i;
             int addr;
             int tmp;
 
@@ -347,9 +346,9 @@ namespace NesAsmSharp.Assembler.Processors
             }
 
             /* remap proc symbols */
-            for (i = 0; i < ctx.HashTbl.Length; i++)
+            foreach (var symbol in ctx.HashTbl.Values)
             {
-                sym = ctx.HashTbl[i];
+                sym = symbol;
 
                 while (sym != null)
                 {
@@ -399,19 +398,11 @@ namespace NesAsmSharp.Assembler.Processors
         /// <returns></returns>
         public NesAsmProc ProcLook()
         {
-            var hash = symPr.SymHash();
             var symstr = ctx.Symbol.ToStringFromNullTerminated();
 
             /* search the procedure in the hash table */
-            var ptr = ctx.ProcTbl[hash];
-            while (ptr != null)
-            {
-                if (symstr == ptr.Name) break;
-                ptr = ptr.Next;
-            }
-
             /* ok */
-            return ptr;
+            return ctx.ProcTbl.ContainsKey(symstr) ? ctx.ProcTbl[symstr] : null;
         }
 
         /// <summary>
@@ -420,11 +411,11 @@ namespace NesAsmSharp.Assembler.Processors
         /// <returns></returns>
         public int ProcInstall()
         {
-            var ptr = new NesAsmProc();
+            var symstr = ctx.Symbol.ToStringFromNullTerminated();
 
+            var ptr = new NesAsmProc();
             /* initialize it */
-            var hash = symPr.SymHash();
-            ptr.Name = ctx.Symbol.ToStringFromNullTerminated();
+            ptr.Name = symstr;
             ptr.Bank = (ctx.OpType == (int)AsmDirective.P_PGROUP) ? Definition.GROUP_BANK : Definition.PROC_BANK;
             ptr.Base = ctx.ProcPtr != null ? ctx.LocCnt : 0;
             ptr.Org = ptr.Base;
@@ -432,22 +423,22 @@ namespace NesAsmSharp.Assembler.Processors
             ptr.Call = 0;
             ptr.RefCnt = 0;
             ptr.Link = null;
-            ptr.Next = ctx.ProcTbl[hash];
             ptr.Group = ctx.ProcPtr;
             ptr.Type = (AsmDirective)ctx.OpType;
+
             ctx.ProcPtr = ptr;
-            ctx.ProcTbl[hash] = ctx.ProcPtr;
+            ctx.ProcTbl[symstr] = ptr;
 
             /* link it */
             if (ctx.ProcFirst == null)
             {
-                ctx.ProcFirst = ctx.ProcPtr;
-                ctx.ProcLast = ctx.ProcPtr;
+                ctx.ProcFirst = ptr;
+                ctx.ProcLast = ptr;
             }
             else
             {
-                ctx.ProcLast.Link = ctx.ProcPtr;
-                ctx.ProcLast = ctx.ProcPtr;
+                ctx.ProcLast.Link = ptr;
+                ctx.ProcLast = ptr;
             }
 
             /* ok */

@@ -37,7 +37,7 @@ namespace NesAsmSharp.Assembler
         public int ErrCnt { get; set; } // error counter
         public NesAsmMachine Machine { get; set; }
         public NesAsmOpecode[] InstTbl { get; private set; } // instructions hash table
-        public NesAsmSymbol[] HashTbl { get; private set; } // label hash table
+        public Dictionary<string, NesAsmSymbol> HashTbl { get; private set; } // label hash table
         public NesAsmSymbol LablPtr { get; set; } // label pointer into symbol table
         public NesAsmSymbol GLablPtr { get; set; } // pointer to the latest defined global label
         public NesAsmSymbol LastLabl { get; set; } // last label we have seen
@@ -66,7 +66,7 @@ namespace NesAsmSharp.Assembler
         public Stack<int> MCntStack { get; private set; }
         public Stack<NesAsmLine> MStack { get; private set; }
         public NesAsmLine MLPtr { get; set; }
-        public NesAsmMacro[] MacroTbl { get; private set; }
+        public Dictionary<string, NesAsmMacro> MacroTbl { get; private set; }
         public NesAsmMacro MPtr { get; set; }
 
         // assemble.c
@@ -79,7 +79,7 @@ namespace NesAsmSharp.Assembler
         public bool ContinuedLine { get; set; } // set when a line is the continuation of another line
 
         // func.c
-        public NesAsmFunc[] FuncTbl { get; private set; }
+        public Dictionary<string, NesAsmFunc> FuncTbl { get; private set; }
         public NesAsmFunc FuncPtr { get; set; }
         public char[] FuncLine { get; private set; }
         public char[,][] FuncArg { get; private set; }
@@ -95,7 +95,7 @@ namespace NesAsmSharp.Assembler
         public int ExprLablcnt { get; set; } // number of label seen in an expression
 
         // proc.c
-        public NesAsmProc[] ProcTbl { get; private set; }
+        public Dictionary<string, NesAsmProc> ProcTbl { get; private set; }
         public NesAsmProc ProcPtr { get; set; }
         public NesAsmProc ProcFirst { get; set; }
         public NesAsmProc ProcLast { get; set; }
@@ -143,7 +143,7 @@ namespace NesAsmSharp.Assembler
             BankPage = new int[4, 256];
             SectionBank = new int[4];
             InstTbl = new NesAsmOpecode[256];
-            HashTbl = new NesAsmSymbol[256];
+            HashTbl = new Dictionary<string, NesAsmSymbol>();
             BankGLabl = new NesAsmSymbol[4, 256];
             PrLnBuf = new char[Definition.LAST_CH_POS + 4];
             TmpLnBuf = new char[Definition.LAST_CH_POS + 4];
@@ -160,14 +160,14 @@ namespace NesAsmSharp.Assembler
             }
             MCntStack = new Stack<int>();
             MStack = new Stack<NesAsmLine>();
-            MacroTbl = new NesAsmMacro[256];
+            MacroTbl = new Dictionary<string, NesAsmMacro>();
 
             // assemble.c
             IfState = new bool[256];
             IfFlag = new int[256];
 
             // func.c
-            FuncTbl = new NesAsmFunc[256];
+            FuncTbl = new Dictionary<string, NesAsmFunc>();
             FuncArg = new char[8, 10][];
             for (var i = 0; i < 8; i++)
             {
@@ -184,7 +184,7 @@ namespace NesAsmSharp.Assembler
             ExprStack = new Stack<ArrayPointer<char>>();
 
             // proc.c
-            ProcTbl = new NesAsmProc[256];
+            ProcTbl = new Dictionary<string, NesAsmProc>();
 
             // input.c
             InputFile = new NesAsmInputInfo[8];

@@ -33,6 +33,12 @@ namespace NesAsmSharp.Assembler
         /// </summary>
         public static readonly int SBOLSZ = 64;
         /// <summary>
+        /// マクロ名の長さ(オリジナルの値=32)
+        /// MACROSZ = 64
+        /// </summary>
+        public static readonly int MACROSZ = 64;
+
+        /// <summary>
         /// Functuionの引数の最大文字数
         /// FUNC_ARG_MAX_LEN = 80
         /// </summary>
@@ -178,6 +184,15 @@ namespace NesAsmSharp.Assembler
         DEFABS,    // defined - two byte address
         MACRO,     // used for a macro name
         FUNC,      // used for a function
+    }
+
+    /// <summary>
+    /// シンボルのスコープ(GLOBAL/LOCAL)
+    /// </summary>
+    public enum SymbolScope
+    {
+        GLOBAL,
+        LOCAL
     }
 
     /* operation code flags */

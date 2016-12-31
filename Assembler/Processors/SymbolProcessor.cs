@@ -14,28 +14,6 @@ namespace NesAsmSharp.Assembler.Processors
         }
 
         /// <summary>
-        /// calculate the hash value of a symbol
-        /// </summary>
-        /// <returns></returns>
-        public int SymHash()
-        {
-            var symbol = ctx.Symbol;
-            int hash = 0;
-            var i = 0;
-            char c;
-
-            /* hash value */
-            while ((c = symbol[i++]) != '\0')
-            {
-                hash += c;
-                hash = (hash << 3) + (hash >> 5) + c;
-            }
-
-            /* ok */
-            return (hash & 0xFF);
-        }
-
-        /// <summary>
         /// collect a symbol from prlnbuf into symbol[],
         /// leaves prlnbuf pointer at first invalid symbol character,
         /// returns 0 if no symbol collected
@@ -55,7 +33,7 @@ namespace NesAsmSharp.Assembler.Processors
                 c = ctx.PrLnBuf[ip];
                 if (char.IsDigit(c) && (i == 0)) break;
                 if ((!CharUtil.IsAlNum(c)) && (c != '_') && (c != '.')) break;
-                if (i < (Definition.SBOLSZ))
+                if (i < Definition.SBOLSZ)
                 {
                     symbol[i++] = c;
                 }
@@ -104,9 +82,8 @@ namespace NesAsmSharp.Assembler.Processors
         /// <returns></returns>
         public NesAsmSymbol STLook(int flag)
         {
-            NesAsmSymbol sym;
+            NesAsmSymbol sym = null;
             bool sym_flag = false;
-            int hash;
             var symstr = ctx.Symbol.ToStringFromNullTerminated();
 
             /* local symbol */
@@ -128,7 +105,7 @@ namespace NesAsmSharp.Assembler.Processors
                     {
                         if (flag != 0)
                         {
-                            sym = STInstall(0, 1);
+                            sym = STInstall(symstr, SymbolScope.LOCAL);
                             sym_flag = true;
                         }
                     }
@@ -143,12 +120,9 @@ namespace NesAsmSharp.Assembler.Processors
             else
             {
                 /* search symbol */
-                hash = SymHash();
-                sym = ctx.HashTbl[hash];
-                while (sym != null)
+                if (ctx.HashTbl.ContainsKey(symstr))
                 {
-                    if (symstr == sym.Name) break;
-                    sym = sym.Next;
+                    sym = ctx.HashTbl[symstr];
                 }
 
                 /* new symbol */
@@ -156,7 +130,7 @@ namespace NesAsmSharp.Assembler.Processors
                 {
                     if (flag != 0)
                     {
-                        sym = STInstall(hash, 0);
+                        sym = STInstall(symstr, SymbolScope.GLOBAL);
                         sym_flag = true;
                     }
                 }
@@ -178,7 +152,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// <param name="hash"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public NesAsmSymbol STInstall(int hash, int type)
+        public NesAsmSymbol STInstall(string symName, SymbolScope scope)
         {
             NesAsmSymbol sym = new NesAsmSymbol();
 
@@ -197,11 +171,11 @@ namespace NesAsmSharp.Assembler.Processors
             sym.Reserved = 0;
             sym.DataType = AsmDirective.P_UNDEFINED;
             sym.DataSize = 0;
-            sym.Name = ctx.Symbol.ToStringFromNullTerminated();
+            sym.Name = symName;
 
 
             /* add the symbol to the hash table */
-            if (type != 0)
+            if (scope == SymbolScope.LOCAL)
             {
                 /* local */
                 sym.Next = ctx.GLablPtr.Local;
@@ -210,8 +184,7 @@ namespace NesAsmSharp.Assembler.Processors
             else
             {
                 /* global */
-                sym.Next = ctx.HashTbl[hash];
-                ctx.HashTbl[hash] = sym;
+                ctx.HashTbl[symName] = sym;
             }
 
             /* ok */
@@ -353,14 +326,10 @@ namespace NesAsmSharp.Assembler.Processors
 
         public void LablRemap()
         {
-            NesAsmSymbol sym;
-
-            int i;
-
             /* browse the symbol table */
-            for (i = 0; i < 256; i++)
+            foreach(var symbol in ctx.HashTbl.Values)
             {
-                sym = ctx.HashTbl[i];
+                var sym = symbol;
                 while (sym != null)
                 {
                     /* remap the bank */
@@ -372,7 +341,6 @@ namespace NesAsmSharp.Assembler.Processors
                 }
             }
         }
-
 
     }
 }
