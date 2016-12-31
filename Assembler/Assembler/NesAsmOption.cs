@@ -12,7 +12,7 @@ namespace NesAsmSharp.Assembler
         /* variables */
         public string InFName { get; set; } // file names, input
         public string OutFName { get; set; } // output
-        public string BinFname { get; set; } // binary
+        public string BinFName { get; set; } // binary
         public string LstFName { get; set; } // listing
         public string PrgName { get; set; } // program name
         public Encoding Encoding { get; set; } // source file text encoding
@@ -43,6 +43,14 @@ namespace NesAsmSharp.Assembler
         public int ListLevel { get; set; } // output level
         public Dictionary<AssemblerOption, bool> AsmOpt { get; private set; } // assembler options
         public bool AutoZPOpt { get; set; } // auto zeropage mode for NES ONLY
+        /// <summary>
+        /// 標準出力先を変更する場合に設定する
+        /// </summary>
+        public TextWriter StdOut { get; set; }
+        /// <summary>
+        /// 標準エラー出力先を変更する場合に設定する
+        /// </summary>
+        public TextWriter StdErr { get; set; }
 
         public NesAsmOption()
         {
@@ -54,6 +62,8 @@ namespace NesAsmSharp.Assembler
             }
             // set default encoding
             this.Encoding = Encoding.Default;
+            this.StdOut = Console.Out;
+            this.StdErr = Console.Error;
         }
     }
 }

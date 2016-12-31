@@ -295,15 +295,15 @@ namespace NesAsmSharp.Assembler.Processors
             /* status message */
             if (ext == "mx")
             {
-                Console.Out.Write(@"writing mx file... ");
+                opt.StdOut.Write(@"writing mx file... ");
             }
             else
             {
-                Console.Out.Write(@"writing s-record file... ");
+                opt.StdOut.Write(@"writing s-record file... ");
             }
 
             /* flush output */
-            Console.Out.Flush();
+            opt.StdOut.Flush();
 
             /* add the file extension */
             var fname = file + "." + ext;
@@ -385,12 +385,12 @@ namespace NesAsmSharp.Assembler.Processors
             }
             catch (Exception e)
             {
-                Console.Out.WriteLine("can not open file '{0}'!", fname);
+                opt.StdOut.WriteLine("can not open file '{0}'!", fname);
                 return;
             }
 
             /* ok */
-            Console.Out.WriteLine("OK");
+            opt.StdOut.WriteLine("OK");
         }
 
         /// <summary>
@@ -434,13 +434,13 @@ namespace NesAsmSharp.Assembler.Processors
             if (ctx.InFileError != ctx.InFileNum)
             {
                 ctx.InFileError = ctx.InFileNum;
-                Console.Out.WriteLine($"#[{ctx.InFileNum}]   {ctx.InputFile[ctx.InFileNum].Name}");
+                opt.StdOut.WriteLine($"#[{ctx.InFileNum}]   {ctx.InputFile[ctx.InFileNum].Name}");
             }
 
             /* output the line and the error message */
             LoadLc(ctx.LocCnt, 0);
-            Console.Out.WriteLine(ctx.PrLnBuf.ToStringFromNullTerminated());
-            Console.Out.WriteLine("       {0}", str);
+            opt.StdOut.WriteLine(ctx.PrLnBuf.ToStringFromNullTerminated());
+            opt.StdOut.WriteLine("       {0}", str);
         }
     }
 }

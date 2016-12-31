@@ -261,15 +261,15 @@ namespace NesAsmSharp.Assembler.Processors
             /* parse tiles */
             if (ctx.OpVal == AsmDirective.P_INCMAP)
             {
-                if (ctx.ExprLablcnt == 0)
+                if (ctx.ExprLablCnt == 0)
                 {
                     outPr.Error("No tile table reference!");
                 }
 
-                if (ctx.ExprLablcnt > 1)
+                if (ctx.ExprLablCnt > 1)
                 {
                     // fixed. null.0
-                    ctx.ExprLablcnt = 0;
+                    ctx.ExprLablCnt = 0;
                     outPr.Error("Too many tile table references!");
                 }
 

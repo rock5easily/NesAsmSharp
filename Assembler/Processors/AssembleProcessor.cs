@@ -108,7 +108,7 @@ namespace NesAsmSharp.Assembler.Processors
                             if (CheckEOL(ref i) == 0) return;
                             if (ctx.IfState[ctx.IfLevel])
                             {
-                                ctx.SkipLines = (ctx.IfFlag[ctx.IfLevel] == 0);
+                                ctx.SkipLines = !ctx.IfFlag[ctx.IfLevel];
                                 if (ctx.Pass == PassFlag.LAST_PASS)
                                 {
                                     outPr.PrintLn();
@@ -447,7 +447,7 @@ namespace NesAsmSharp.Assembler.Processors
             ctx.IfState[ctx.IfLevel] = !ctx.SkipLines;
             if (!ctx.SkipLines)
             {
-                ctx.IfFlag[ctx.IfLevel] = ctx.Value == 0 ? 1 : 0;
+                ctx.IfFlag[ctx.IfLevel] = (ctx.Value == 0);
                 ctx.SkipLines = (ctx.Value == 0);
             }
 
@@ -517,14 +517,12 @@ namespace NesAsmSharp.Assembler.Processors
                 if (ctx.OpType != 0)
                 {
                     /* .ifdef */
-                    ctx.IfFlag[ctx.IfLevel] = (ctx.LablPtr == null) ? 1 : 0;
-                    ctx.SkipLines = (ctx.LablPtr == null);
+                    ctx.SkipLines = ctx.IfFlag[ctx.IfLevel] = (ctx.LablPtr == null);
                 }
                 else
                 {
                     /* .ifndef */
-                    ctx.IfFlag[ctx.IfLevel] = (ctx.LablPtr != null) ? 1 : 0;
-                    ctx.SkipLines = (ctx.LablPtr != null);
+                    ctx.SkipLines = ctx.IfFlag[ctx.IfLevel] = (ctx.LablPtr != null);
                 }
             }
 

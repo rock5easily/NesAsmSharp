@@ -74,7 +74,7 @@ namespace NesAsmSharp.Assembler
         public bool IfExpr { get; set; } // set when parsing an .if expression
         public int IfLevel { get; set; } // level of nested .if's
         public bool[] IfState { get; private set; }  // status when entering the .if
-        public int[] IfFlag { get; private set; } // .if/.else status
+        public bool[] IfFlag { get; private set; } // .if/.else status
         public bool SkipLines { get; set; } // set when lines must be skipped
         public bool ContinuedLine { get; set; } // set when a line is the continuation of another line
 
@@ -92,7 +92,7 @@ namespace NesAsmSharp.Assembler
         public ArrayPointer<char> Expr { get; set; } // pointer to the expression string
         public Stack<ArrayPointer<char>> ExprStack { get; private set; } // expression stack
         public NesAsmSymbol ExprLablPtr { get; set; } // pointer to the lastest label
-        public int ExprLablcnt { get; set; } // number of label seen in an expression
+        public int ExprLablCnt { get; set; } // number of label seen in an expression
 
         // proc.c
         public Dictionary<string, NesAsmProc> ProcTbl { get; private set; }
@@ -120,13 +120,13 @@ namespace NesAsmSharp.Assembler
         public int PcxH { get; set; } //. pcx dimensions
         public int PcxNbColors { get; set; } // number of colors in the pcx
         public int PcxNbArgs { get; set; } // number of argument
-        public uint[] PcxArg = new uint[8]; // pcx args array
-        public byte[] PcxBuf; // pointer to the pcx buffer
-        public byte[,] PcxPal = new byte[256, 3];	// palette
-        public byte[,] PcxPlane = new byte[128, 4]; // plane buffer
+        public uint[] PcxArg { get; private set; } // pcx args array
+        public byte[] PcxBuf { get; set; } // pointer to the pcx buffer
+        public byte[,] PcxPal { get; private set; }	// palette
+        public byte[,] PcxPlane { get; private set; } // plane buffer
         public uint TileOffset { get; set; } // offset in the tile reference table
-        public NesAsmTile[] Tile = new NesAsmTile[256]; // tile info table
-        public NesAsmTile[] TileTbl = new NesAsmTile[256]; // tile hash table
+        public NesAsmTile[] Tile { get; private set; } // tile info table
+        public NesAsmTile[] TileTbl { get; private set; } // tile hash table
         public NesAsmSymbol TileLablPtr { get; set; } // tile symbol reference
         public PCXHeader Pcx { get; set; }
 
@@ -164,7 +164,7 @@ namespace NesAsmSharp.Assembler
 
             // assemble.c
             IfState = new bool[256];
-            IfFlag = new int[256];
+            IfFlag = new bool[256];
 
             // func.c
             FuncTbl = new Dictionary<string, NesAsmFunc>();
@@ -189,6 +189,13 @@ namespace NesAsmSharp.Assembler
             // input.c
             InputFile = new NesAsmInputInfo[8];
             IncPath = new string[Definition.INC_PATH_MAX];
+
+            // pcx.c
+            PcxArg = new uint[8];
+            PcxPal = new byte[256, 3];
+            PcxPlane = new byte[128, 4];
+            Tile = new NesAsmTile[256];
+            TileTbl = new NesAsmTile[256];
 
             // CreateInstanceDictionary();
             instanceDictionary = new Dictionary<Type, ProcessorBase>();

@@ -61,7 +61,7 @@ namespace NesAsmSharp.Assembler.Processors
             ctx.ExprStack.Clear();
             ctx.NeedOperator = false;
             ctx.ExprLablPtr = null;
-            ctx.ExprLablcnt = 0;
+            ctx.ExprLablCnt = 0;
 
             op = OperatorType.OP_START;
             ctx.OpStack.Push(op);
@@ -477,7 +477,7 @@ namespace NesAsmSharp.Assembler.Processors
                 }
 
                 /* remember we have seen a symbol in the expression */
-                ctx.ExprLablcnt++;
+                ctx.ExprLablCnt++;
                 break;
             /* binary number %1100_0011 */
             case ValueType.T_BINARY:
@@ -660,7 +660,7 @@ namespace NesAsmSharp.Assembler.Processors
             case OperatorType.OP_PAL:
             case OperatorType.OP_SIZEOF:
                 ctx.ExprLablPtr = null;
-                ctx.ExprLablcnt = 0;
+                ctx.ExprLablCnt = 0;
                 break;
             }
 
@@ -877,9 +877,9 @@ namespace NesAsmSharp.Assembler.Processors
         {
             string str;
 
-            if (ctx.ExprLablcnt == 1)
+            if (ctx.ExprLablCnt == 1)
                 return (1);
-            else if (ctx.ExprLablcnt == 0)
+            else if (ctx.ExprLablCnt == 0)
                 str = string.Format(@"No symbol in function {0}!", func_name);
             else
             {

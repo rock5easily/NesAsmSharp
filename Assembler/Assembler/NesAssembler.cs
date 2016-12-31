@@ -71,7 +71,7 @@ namespace NesAsmSharp.Assembler
             /* open the input file */
             if (inPr.OpenInputFile(opt.InFName) != 0)
             {
-                Console.Out.WriteLine("Can not open input file '{0}'!", opt.InFName);
+                opt.StdOut.WriteLine("Can not open input file '{0}'!", opt.InFName);
                 return 1;
             }
 
@@ -85,10 +85,10 @@ namespace NesAsmSharp.Assembler
                 opt.LstFName = baseFname + ".lst";
             }
 
-            if (string.IsNullOrEmpty(opt.BinFname))
+            if (string.IsNullOrEmpty(opt.BinFName))
             {
                 // set default bin name
-                opt.BinFname = baseFname + ctx.Machine.RomExt;
+                opt.BinFName = baseFname + ctx.Machine.RomExt;
             }
 
             if (string.IsNullOrEmpty(opt.OutFName))
@@ -195,7 +195,7 @@ namespace NesAsmSharp.Assembler
                 ctx.BankLocCnt[(int)SectionType.S_DATA, 0x00] = 0x0000;
 
                 /* pass message */
-                Console.Out.WriteLine("pass {0}", (int)(pass + 1));
+                opt.StdOut.WriteLine("pass {0}", (int)(pass + 1));
 
                 /* assemble */
                 while (inPr.ReadLine() != -1)
@@ -226,7 +226,7 @@ namespace NesAsmSharp.Assembler
                 /* abord pass on errors */
                 if (ctx.ErrCnt != 0)
                 {
-                    Console.Out.WriteLine("# {0} error(s)\n", ctx.ErrCnt);
+                    opt.StdOut.WriteLine("# {0} error(s)\n", ctx.ErrCnt);
                     break;
                 }
 
@@ -267,7 +267,7 @@ namespace NesAsmSharp.Assembler
                         }
                         catch (Exception e)
                         {
-                            Console.Out.WriteLine("Can not open listing file '{0}'!", opt.LstFName);
+                            opt.StdOut.WriteLine("Can not open listing file '{0}'!", opt.LstFName);
                             Environment.Exit(1);
                         }
                         opt.LstFp.WriteLine("#[1]   {0}", ctx.InputFile[1].Name);
@@ -292,11 +292,11 @@ namespace NesAsmSharp.Assembler
                 /* open output file */
                 try
                 {
-                    fp = new FileStream(opt.BinFname, FileMode.Create, FileAccess.Write);
+                    fp = new FileStream(opt.BinFName, FileMode.Create, FileAccess.Write);
                 }
                 catch (Exception e)
                 {
-                    Console.Out.WriteLine("Can not open output file '{0}'!", opt.BinFname);
+                    opt.StdOut.WriteLine("Can not open output file '{0}'!", opt.BinFName);
                     return 1;
                 }
 
@@ -310,7 +310,7 @@ namespace NesAsmSharp.Assembler
                     }
                     catch (Exception e)
                     {
-                        Console.Out.WriteLine("Can not find CD boot file 'boot.bin'!");
+                        opt.StdOut.WriteLine("Can not find CD boot file 'boot.bin'!");
                         return 1;
                     }
 
@@ -388,11 +388,11 @@ namespace NesAsmSharp.Assembler
                     /* open file */
                     try
                     {
-                        fp = new FileStream(opt.BinFname, FileMode.Create, FileAccess.Write);
+                        fp = new FileStream(opt.BinFName, FileMode.Create, FileAccess.Write);
                     }
                     catch (Exception e)
                     {
-                        Console.Out.WriteLine("Can not open binary file '{0}'!\n", opt.BinFname);
+                        opt.StdOut.WriteLine("Can not open binary file '{0}'!\n", opt.BinFName);
                         return 1;
                     }
 
@@ -485,30 +485,30 @@ namespace NesAsmSharp.Assembler
             int rom_free;
             int ram_base = (int)ctx.Machine.RamBase;
 
-            Console.Out.WriteLine("segment usage:\n");
+            opt.StdOut.WriteLine("segment usage:\n");
 
             /* zp usage */
             if (ctx.MaxZP <= 1)
             {
-                Console.Out.WriteLine("      ZP    -");
+                opt.StdOut.WriteLine("      ZP    -");
             }
             else
             {
                 start = ram_base;
                 stop = ram_base + (ctx.MaxZP - 1);
-                Console.Out.WriteLine("      ZP    ${0:X4}-${1:X4}  [{2,4}]", start, stop, stop - start + 1);
+                opt.StdOut.WriteLine("      ZP    ${0:X4}-${1:X4}  [{2,4}]", start, stop, stop - start + 1);
             }
 
             /* bss usage */
             if (ctx.MaxBSS <= 0x201)
             {
-                Console.Out.WriteLine("     BSS    -");
+                opt.StdOut.WriteLine("     BSS    -");
             }
             else
             {
                 start = ram_base + 0x200;
                 stop = ram_base + (ctx.MaxBSS - 1);
-                Console.Out.WriteLine("     BSS    ${0:X4}-${1:X4}  [{2,4}]", start, stop, stop - start + 1);
+                opt.StdOut.WriteLine("     BSS    ${0:X4}-${1:X4}  [{2,4}]", start, stop, stop - start + 1);
             }
 
             /* bank usage */
@@ -517,7 +517,7 @@ namespace NesAsmSharp.Assembler
 
             if (ctx.MaxBank != 0)
             {
-                Console.Out.WriteLine("\t\t\t\t    USED/FREE");
+                opt.StdOut.WriteLine("\t\t\t\t    USED/FREE");
             }
 
             /* scan banks */
@@ -536,11 +536,11 @@ namespace NesAsmSharp.Assembler
                 /* display bank infos */
                 if (nb != 0)
                 {
-                    Console.Out.WriteLine("BANK{0,4}    {1,20}    {2,4}/{3,4}", i, ctx.BankName[i], nb, 8192 - nb);
+                    opt.StdOut.WriteLine("BANK{0,4}    {1,20}    {2,4}/{3,4}", i, ctx.BankName[i], nb, 8192 - nb);
                 }
                 else
                 {
-                    Console.Out.WriteLine("BANK{0,4}    {1,20}       0/8192", i, ctx.BankName[i]);
+                    opt.StdOut.WriteLine("BANK{0,4}    {1,20}       0/8192", i, ctx.BankName[i]);
                     continue;
                 }
 
@@ -574,7 +574,7 @@ namespace NesAsmSharp.Assembler
                     }
 
                     /* display section infos */
-                    Console.Out.WriteLine("    {0}    ${1:X4}-${2:X4}  [{3,4}]",
+                    opt.StdOut.WriteLine("    {0}    ${1:X4}-${2:X4}  [{3,4}]",
                             Definition.SectionName[(int)ctx.Section],  /* section name */
                             start + ctx.Page,           /* starting address */
                             addr + ctx.Page - 1,        /* end address */
@@ -585,8 +585,8 @@ namespace NesAsmSharp.Assembler
             /* total */
             rom_used = (rom_used + 1023) >> 10;
             rom_free = (rom_free) >> 10;
-            Console.Out.WriteLine("\t\t\t\t    ---- ----");
-            Console.Out.WriteLine("\t\t\t\t    {0,4}K{0,4}K", rom_used, rom_free);
+            opt.StdOut.WriteLine("\t\t\t\t    ---- ----");
+            opt.StdOut.WriteLine("\t\t\t\t    {0,4}K{0,4}K", rom_used, rom_free);
         }
     }
 }
