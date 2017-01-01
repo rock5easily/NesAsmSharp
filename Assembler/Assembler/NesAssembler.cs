@@ -282,8 +282,8 @@ namespace NesAsmSharp.Assembler
         {
             var outpr = ctx.GetProcessor<OutputProcessor>();
 
-            FileStream fp = null;
-            FileStream ipl = null;
+            FileStream fsBin = null;
+            FileStream fsIpl = null;
 
             /* rom */
             /* cd-rom */
@@ -292,7 +292,7 @@ namespace NesAsmSharp.Assembler
                 /* open output file */
                 try
                 {
-                    fp = new FileStream(opt.BinFName, FileMode.Create, FileAccess.Write);
+                    fsBin = new FileStream(opt.BinFName, FileMode.Create, FileAccess.Write);
                 }
                 catch (Exception e)
                 {
@@ -306,7 +306,7 @@ namespace NesAsmSharp.Assembler
                     /* open ipl binary file */
                     try
                     {
-                        ipl = new FileStream("boot.bin", FileMode.Open, FileAccess.Read);
+                        fsIpl = new FileStream("boot.bin", FileMode.Open, FileAccess.Read);
                     }
                     catch (Exception e)
                     {
@@ -315,39 +315,68 @@ namespace NesAsmSharp.Assembler
                     }
 
                     /* load ipl */
-                    var ipl_buffer = new byte[4096];
-                    ipl.Read(ipl_buffer, 0, 4096);
-                    ipl.Close();
+                    var iplBuffer = new byte[4096];
+                    using (fsIpl)
+                    {
+                        try
+                        {
+                            fsIpl.Read(iplBuffer, 0, iplBuffer.Length);
+                        }
+                        catch (Exception e)
+                        {
+                            opt.StdOut.WriteLine("CD boot file 'boot.bin' read error!");
+                            return 1;
+                        }
+                    }
 
-                    Array.Clear(ipl_buffer, 0x800, 32);
+                    Array.Clear(iplBuffer, 0x800, 32);
 
                     /* prg sector base */
-                    ipl_buffer[0x802] = 2;
+                    iplBuffer[0x802] = 2;
                     /* nb sectors */
-                    ipl_buffer[0x803] = 4;
+                    iplBuffer[0x803] = 4;
                     /* loading address */
-                    ipl_buffer[0x804] = 0x00;
-                    ipl_buffer[0x805] = 0x40;
+                    iplBuffer[0x804] = 0x00;
+                    iplBuffer[0x805] = 0x40;
                     /* starting address */
-                    ipl_buffer[0x806] = 0x10;
-                    ipl_buffer[0x807] = 0x40;
+                    iplBuffer[0x806] = 0x10;
+                    iplBuffer[0x807] = 0x40;
                     /* mpr registers */
-                    ipl_buffer[0x808] = 0x00;
-                    ipl_buffer[0x809] = 0x01;
-                    ipl_buffer[0x80A] = 0x02;
-                    ipl_buffer[0x80B] = 0x03;
-                    ipl_buffer[0x80C] = 0x04;
+                    iplBuffer[0x808] = 0x00;
+                    iplBuffer[0x809] = 0x01;
+                    iplBuffer[0x80A] = 0x02;
+                    iplBuffer[0x80B] = 0x03;
+                    iplBuffer[0x80C] = 0x04;
                     /* load mode */
-                    ipl_buffer[0x80D] = 0x60;
+                    iplBuffer[0x80D] = 0x60;
 
                     /* write boot code */
-                    fp.Write(ipl_buffer, 0, 4096);
+                    try
+                    {
+                        fsBin.Write(iplBuffer, 0, 4096);
+                    }
+                    catch (Exception e)
+                    {
+                        opt.StdOut.WriteLine("output file '{0}' write error!", opt.BinFName);
+                        fsBin.Close();
+                        return 1;
+                    }
                 }
 
                 /* write rom */
                 var rom = ctx.Rom.ToByteArray();
-                fp.Write(rom, 0, 8192 * (ctx.MaxBank + 1));
-                fp.Close();
+                using (fsBin)
+                {
+                    try
+                    {
+                        fsBin.Write(rom, 0, 8192 * (ctx.MaxBank + 1));
+                    }
+                    catch (Exception e)
+                    {
+                        opt.StdOut.WriteLine("output file '{0}' write error!", opt.BinFName);
+                        return 1;
+                    }
+                }
             }
             /* develo box */
             else if (opt.DeveloOpt || opt.MxOpt)
@@ -388,7 +417,7 @@ namespace NesAsmSharp.Assembler
                     /* open file */
                     try
                     {
-                        fp = new FileStream(opt.BinFName, FileMode.Create, FileAccess.Write);
+                        fsBin = new FileStream(opt.BinFName, FileMode.Create, FileAccess.Write);
                     }
                     catch (Exception e)
                     {
@@ -399,13 +428,32 @@ namespace NesAsmSharp.Assembler
                     /* write header */
                     if (opt.HeaderOpt)
                     {
-                        ctx.Machine.WriteHeader(fp, ctx.MaxBank + 1);
+                        try
+                        {
+                            ctx.Machine.WriteHeader(fsBin, ctx.MaxBank + 1);
+                        }
+                        catch (Exception e)
+                        {
+                            opt.StdOut.WriteLine("output file '{0}' write error!", opt.BinFName);
+                            fsBin.Close();
+                            return 1;
+                        }
                     }
 
                     /* write rom */
                     var rom = ctx.Rom.ToByteArray();
-                    fp.Write(rom, 0, 8192 * (ctx.MaxBank + 1));
-                    fp.Close();
+                    using (fsBin)
+                    {
+                        try
+                        {
+                            fsBin.Write(rom, 0, 8192 * (ctx.MaxBank + 1));
+                        }
+                        catch (Exception e)
+                        {
+                            opt.StdOut.WriteLine("output file '{0}' write error!", opt.BinFName);
+                            return 1;
+                        }
+                    }
                 }
             }
 
@@ -415,18 +463,12 @@ namespace NesAsmSharp.Assembler
         private void Cleanup()
         {
             /* close listing file */
-            if (opt.LstFp != null)
-            {
-                opt.LstFp.Close();
-                opt.LstFp = null;
-            }
+            opt.LstFp?.Close();
+            opt.LstFp = null;
 
             /* close input file */
-            if (opt.InFp != null)
-            {
-                opt.InFp.Close();
-                opt.InFp = null;
-            }
+            opt.InFp?.Close();
+            opt.InFp = null;
 
             /* dump the bank table */
             if (opt.DumpSeg > 0)

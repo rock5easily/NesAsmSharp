@@ -24,25 +24,18 @@ namespace NesAsmSharp.Assembler.Processors
 
             if (path == null) return;
 
-            var pl = path.Split(';');
-            var min = Math.Min(pl.Length, ctx.IncPath.Length);
+            var pl = path.Split(';').Select(s => s.Trim()).Where(s => !string.IsNullOrEmpty(s))
+                    .Take(ctx.IncPath.Length).ToArray();
 
-            for (var i = 0; i < min; i++)
+            for (var i = 0; i < pl.Length; i++)
             {
                 var p = pl[i];
 
-                if (p.Length == 0)
+                if (p.Last() != Path.DirectorySeparatorChar)
                 {
-                    ctx.IncPath[i] = null;
+                    p += Path.DirectorySeparatorChar;
                 }
-                else
-                {
-                    if (!p.EndsWith(Definition.PATH_SEPARATOR_STR))
-                    {
-                        p = p + Definition.PATH_SEPARATOR_STR;
-                    }
-                    ctx.IncPath[i] = p;
-                }
+                ctx.IncPath[i] = p;
             }
         }
 
@@ -259,7 +252,7 @@ namespace NesAsmSharp.Assembler.Processors
             /* auto add the .asm file extension */
             if ((p = temp.LastIndexOf('.')) >= 0)
             {
-                if (temp.IndexOf(Definition.PATH_SEPARATOR, p) >= 0)
+                if (temp.IndexOf(Path.DirectorySeparatorChar, p) >= 0)
                 {
                     temp += ".asm";
                 }
@@ -355,33 +348,32 @@ namespace NesAsmSharp.Assembler.Processors
         }
 
         /// <summary>
-        /// open a file - browse paths
+        /// カレントディレクトリ、IncPathで指定されたディレクトリの順にファイルを探す
         /// </summary>
         /// <param name="name"></param>
-        /// <param name="mode"></param>
-        /// <param name="access"></param>
-        /// <returns></returns>
-        public FileStream OpenFile(string name, FileMode mode, FileAccess access)
+        /// <returns>見つかったファイルのパス</returns>
+        public string FindFileByIncPath(string name, List<string> checkedPathHistory = null)
         {
-            FileStream fileptr = null;
-            string testname;
-            int i;
+            var fullPath = Path.GetFullPath(name);
+            checkedPathHistory?.Add(fullPath);
 
-            if (File.Exists(name))
+            if (File.Exists(fullPath))
             {
-                fileptr = new FileStream(name, mode, access);
-                return fileptr;
+                return fullPath;
             }
 
-            for (i = 0; i < ctx.IncPath.Length; i++)
+            if (fullPath == name) return null;
+
+            foreach (var path in ctx.IncPath)
             {
-                if (!string.IsNullOrEmpty(ctx.IncPath[i]))
+                if (!string.IsNullOrEmpty(path))
                 {
-                    testname = ctx.IncPath[i] + name;
-                    if (File.Exists(testname))
+                    fullPath = Path.GetFullPath(Path.Combine(path, name));
+
+                    checkedPathHistory?.Add(fullPath);
+                    if (File.Exists(fullPath))
                     {
-                        fileptr = new FileStream(testname, mode, access);
-                        return fileptr;
+                        return fullPath;
                     }
                 }
             }

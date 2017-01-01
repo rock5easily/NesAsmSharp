@@ -83,7 +83,7 @@ namespace NesAsmSharp.Assembler.Processors
         public NesAsmSymbol STLook(int flag)
         {
             NesAsmSymbol sym = null;
-            bool sym_flag = false;
+            bool symbolInstalled = false;
             var symstr = ctx.Symbol.ToStringFromNullTerminated();
 
             /* local symbol */
@@ -106,7 +106,7 @@ namespace NesAsmSharp.Assembler.Processors
                         if (flag != 0)
                         {
                             sym = STInstall(symstr, SymbolScope.LOCAL);
-                            sym_flag = true;
+                            symbolInstalled = true;
                         }
                     }
                 }
@@ -120,10 +120,7 @@ namespace NesAsmSharp.Assembler.Processors
             else
             {
                 /* search symbol */
-                if (ctx.HashTbl.ContainsKey(symstr))
-                {
-                    sym = ctx.HashTbl[symstr];
-                }
+                sym = ctx.HashTbl.GetValueOrDefault(symstr);
 
                 /* new symbol */
                 if (sym == null)
@@ -131,13 +128,13 @@ namespace NesAsmSharp.Assembler.Processors
                     if (flag != 0)
                     {
                         sym = STInstall(symstr, SymbolScope.GLOBAL);
-                        sym_flag = true;
+                        symbolInstalled = true;
                     }
                 }
             }
 
             /* incremente symbol reference counter */
-            if (!sym_flag)
+            if (!symbolInstalled)
             {
                 if (sym != null) sym.RefCnt++;
             }

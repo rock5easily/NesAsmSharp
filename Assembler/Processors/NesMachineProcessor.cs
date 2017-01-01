@@ -11,9 +11,9 @@ namespace NesAsmSharp.Assembler.Processors
     public class NesMachineProcessor : ProcessorBase
     {
         /* locals */
-        private int inesPrg;        /* number of prg banks */
-        private int inesChr;        /* number of character banks */
-        private int[] inesMapper = new int[2];  /* rom mapper type */
+        private byte inesPrg;        /* number of prg banks */
+        private byte inesChr;        /* number of character banks */
+        private byte[] inesMapper = new byte[2];  /* rom mapper type */
         private NesHeader header;
 
         public NesMachineProcessor(NesAsmContext ctx) : base(ctx)
@@ -28,11 +28,7 @@ namespace NesAsmSharp.Assembler.Processors
         public void WriteNesHeader(FileStream fs, int banks)
         {
             /* setup INES header */
-            header = new NesHeader();
-            header.Prg = (byte)inesPrg;
-            header.Chr = (byte)inesChr;
-            header.Mapper[0] = (byte)inesMapper[0];
-            header.Mapper[1] = (byte)inesMapper[1];
+            header = new NesHeader(inesPrg, inesChr, inesMapper);
 
             var array = header.ToByteArray();
             /* write */
@@ -174,7 +170,7 @@ namespace NesAsmSharp.Assembler.Processors
                 return;
             }
 
-            inesPrg = (int)ctx.Value;
+            inesPrg = (byte)ctx.Value;
 
             if (ctx.Pass == PassFlag.LAST_PASS)
             {
@@ -196,7 +192,7 @@ namespace NesAsmSharp.Assembler.Processors
                 return;
             }
 
-            inesChr = (int)ctx.Value;
+            inesChr = (byte)ctx.Value;
 
             if (ctx.Pass == PassFlag.LAST_PASS)
             {
@@ -219,8 +215,8 @@ namespace NesAsmSharp.Assembler.Processors
             }
 
             inesMapper[0] &= 0x0F;
-            inesMapper[0] |= ((int)ctx.Value & 0x0F) << 4;
-            inesMapper[1] = ((int)ctx.Value & 0xF0);
+            inesMapper[0] |= (byte)((ctx.Value & 0x0F) << 4);
+            inesMapper[1] = (byte)(ctx.Value & 0xF0);
 
             if (ctx.Pass == PassFlag.LAST_PASS)
             {
@@ -244,7 +240,7 @@ namespace NesAsmSharp.Assembler.Processors
             }
 
             inesMapper[0] &= 0xF0;
-            inesMapper[0] |= ((int)ctx.Value & 0x0F);
+            inesMapper[0] |= (byte)(ctx.Value & 0x0F);
 
             if (ctx.Pass == PassFlag.LAST_PASS)
             {
@@ -347,30 +343,27 @@ namespace NesAsmSharp.Assembler.Processors
 
         public NesHeader()
         {
-            Id = new byte[4];
+            Id = new byte[4] { (byte)'N', (byte)'E', (byte)'S', 26 };
             Mapper = new byte[2];
             Unused = new byte[8];
-            Id[0] = (byte)'N';
-            Id[1] = (byte)'E';
-            Id[2] = (byte)'S';
-            Id[3] = (byte)26;
+        }
+
+        public NesHeader(byte prg, byte chr, byte[] mapper) : this()
+        {
+            Prg = prg;
+            Chr = chr;
+            Mapper[0] = mapper[0];
+            Mapper[1] = mapper[1];
         }
 
         public byte[] ToByteArray()
         {
-            var array = new byte[16];
-            array[0] = Id[0];
-            array[1] = Id[1];
-            array[2] = Id[2];
-            array[3] = Id[3];
-            array[4] = Prg;
-            array[5] = Chr;
-            array[6] = Mapper[0];
-            array[7] = Mapper[1];
-            for (var i = 0; i < 8; i++)
+            var array = new byte[16]
             {
-                array[8 + i] = Unused[i];
-            }
+                 Id[0],  Id[1],  Id[2], Id[3], Prg, Chr, Mapper[0], Mapper[1],
+                 0, 0, 0, 0, 0, 0, 0, 0
+            };
+
             return array;
         }
     }

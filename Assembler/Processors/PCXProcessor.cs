@@ -340,7 +340,7 @@ namespace NesAsmSharp.Assembler.Processors
 
         public int LoadPcx(string name)
         {
-            FileStream f;
+            FileStream fs;
 
             /* check if the file is the same as the previously loaded one;
              * if this is the case do not reload it
@@ -348,7 +348,7 @@ namespace NesAsmSharp.Assembler.Processors
             // fixed. null.0
             if (!string.IsNullOrEmpty(name) && ctx.PcxName.ToLower() == name.ToLower())
             {
-                return (1);
+                return 1;
             }
             else
             {
@@ -360,57 +360,68 @@ namespace NesAsmSharp.Assembler.Processors
             try
             {
                 /* open the file */
-                f = File.OpenRead(name);
+                fs = File.OpenRead(name);
             }
             catch (Exception e)
             {
-                outPr.Error("Can not open file!");
-                return (0);
+                outPr.Error($"Can not open file '{name}'!");
+                return 0;
             }
 
-            /* get the picture size */
-            var barray = new byte[128];
-            f.Read(barray, 0, 128);
-            ctx.Pcx.SetValues(barray);
-            ctx.PcxW = (GET_SHORT(ctx.Pcx.xmax) - GET_SHORT(ctx.Pcx.xmin) + 1);
-            ctx.PcxH = (GET_SHORT(ctx.Pcx.ymax) - GET_SHORT(ctx.Pcx.ymin) + 1);
-
-            /* adjust picture width */
-            if ((ctx.PcxW & 0x01) != 0) ctx.PcxW++;
-
-            /* check size range */
-            if ((ctx.PcxW > 1024) || (ctx.PcxH > 768))
+            using (fs)
             {
-                outPr.Error("Picture size too big, max. 1024x768!");
-                return (0);
-            }
-            if ((ctx.PcxW < 16) || (ctx.PcxH < 16))
-            {
-                outPr.Error("Picture size too small, min. 16x16!");
-                return (0);
+                try
+                {
+                    /* get the picture size */
+                    var barray = new byte[128];
+                    fs.Read(barray, 0, 128);
+                    ctx.Pcx.SetValues(barray);
+                    ctx.PcxW = (GET_SHORT(ctx.Pcx.xmax) - GET_SHORT(ctx.Pcx.xmin) + 1);
+                    ctx.PcxH = (GET_SHORT(ctx.Pcx.ymax) - GET_SHORT(ctx.Pcx.ymin) + 1);
+
+                    /* adjust picture width */
+                    if ((ctx.PcxW & 0x01) != 0) ctx.PcxW++;
+
+                    /* check size range */
+                    if ((ctx.PcxW > 1024) || (ctx.PcxH > 768))
+                    {
+                        outPr.Error("Picture size too big, max. 1024x768!");
+                        return (0);
+                    }
+                    if ((ctx.PcxW < 16) || (ctx.PcxH < 16))
+                    {
+                        outPr.Error("Picture size too small, min. 16x16!");
+                        return (0);
+                    }
+
+                    /* malloc a buffer */
+                    ctx.PcxBuf = new byte[ctx.PcxW * ctx.PcxH];
+
+                    /* decode the picture */
+                    if ((ctx.Pcx.bpp == 8) && (ctx.Pcx.np == 1))
+                    {
+                        Decode256(fs, ctx.PcxW, ctx.PcxH);
+                    }
+                    else if ((ctx.Pcx.bpp == 1) && (ctx.Pcx.np <= 4))
+                    {
+                        Decode16(fs, ctx.PcxW, ctx.PcxH);
+                    }
+                    else
+                    {
+                        outPr.Error("Unsupported or invalid PCX format!");
+                        return 0;
+                    }
+                }
+                catch(Exception e)
+                {
+                    outPr.Error($"file '{name}' read error!");
+                    return 0;
+
+                }
             }
 
-            /* malloc a buffer */
-            ctx.PcxBuf = new byte[ctx.PcxW * ctx.PcxH];
-
-            /* decode the picture */
-            if ((ctx.Pcx.bpp == 8) && (ctx.Pcx.np == 1))
-            {
-                Decode256(f, ctx.PcxW, ctx.PcxH);
-            }
-            else if ((ctx.Pcx.bpp == 1) && (ctx.Pcx.np <= 4))
-            {
-                Decode16(f, ctx.PcxW, ctx.PcxH);
-            }
-            else
-            {
-                outPr.Error("Unsupported or invalid PCX format!");
-                return (0);
-            }
-
-            f.Close();
             ctx.PcxName = name;
-            return (1);
+            return 1;
         }
 
 
@@ -420,7 +431,7 @@ namespace NesAsmSharp.Assembler.Processors
          * decode a 256 colors PCX file
          */
 
-        public void Decode256(FileStream f, int w, int h)
+        public void Decode256(FileStream fs, int w, int h)
         {
             uint i, j, x, y;
             int c;
@@ -433,15 +444,15 @@ namespace NesAsmSharp.Assembler.Processors
             {
             case 0:
                 /* raw */
-                f.Read(ctx.PcxBuf, 0, w * h);
-                c = f.ReadByte();
+                fs.Read(ctx.PcxBuf, 0, w * h);
+                c = fs.ReadByte();
                 return;
 
             case 1:
                 /* simple run-length encoding */
                 do
                 {
-                    c = f.ReadByte();
+                    c = fs.ReadByte();
                     if (c == -1) break;
                     if ((c & 0xC0) != 0xC0)
                     {
@@ -450,7 +461,7 @@ namespace NesAsmSharp.Assembler.Processors
                     else
                     {
                         i = (uint)(c & 0x3F);
-                        c = f.ReadByte();
+                        c = fs.ReadByte();
                     }
 
                     do
@@ -473,16 +484,16 @@ namespace NesAsmSharp.Assembler.Processors
             /* get the palette */
             if (c != -1)
             {
-                c = f.ReadByte();
+                c = fs.ReadByte();
             }
             while ((c != 12) && (c != -1))
             {
-                c = f.ReadByte();
+                c = fs.ReadByte();
             }
             if (c == 12)
             {
                 var pal = new byte[768];
-                f.Read(pal, 0, 768);
+                fs.Read(pal, 0, 768);
                 for (i = 0; i < 256; i++)
                 {
                     for (j = 0; j < 3; j++)
@@ -503,7 +514,7 @@ namespace NesAsmSharp.Assembler.Processors
          * decode a 16 (or less) colors PCX file
          */
 
-        public void Decode16(FileStream f, int w, int h)
+        public void Decode16(FileStream fs, int w, int h)
         {
             int i, j, k, n;
             int x, y, p;
@@ -528,7 +539,7 @@ namespace NesAsmSharp.Assembler.Processors
                 do
                 {
                     /* get a char */
-                    c = f.ReadByte();
+                    c = fs.ReadByte();
                     if (c == -1) break;
 
                     /* check if it's a repeat command */
@@ -539,7 +550,7 @@ namespace NesAsmSharp.Assembler.Processors
                     else
                     {
                         i = (c & 0x3F);
-                        c = f.ReadByte();
+                        c = fs.ReadByte();
                     }
 
                     /* unpack */

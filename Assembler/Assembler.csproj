@@ -66,6 +66,7 @@
     <Compile Include="Util\CharUtil.cs" />
     <Compile Include="Util\ByteArrayExtension.cs" />
     <Compile Include="Assembler\NesAsmContext.cs" />
+    <Compile Include="Util\DictionaryExtension.cs" />
     <Compile Include="Util\IArrayPointer.cs" />
     <Compile Include="Util\Rank2ArrayPointer.cs" />
   </ItemGroup>

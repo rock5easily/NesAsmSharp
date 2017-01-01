@@ -556,7 +556,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// <param name="ip"></param>
         public void do_incbin(ref int ip)
         {
-            FileStream fp;
+            FileStream fsBin;
             int p;
             string fname;
             long longsize;
@@ -567,7 +567,7 @@ namespace NesAsmSharp.Assembler.Processors
             /* get file extension */
             if ((p = fname.LastIndexOf('.')) >= 0)
             {
-                if (fname.IndexOf(Definition.PATH_SEPARATOR, p) < 0)
+                if (fname.IndexOf(Path.DirectorySeparatorChar, p) < 0)
                 {
                     /* check if it's a mx file */
                     if (fname.Substring(p).ToLower() == ".mx")
@@ -595,51 +595,70 @@ namespace NesAsmSharp.Assembler.Processors
             }
 
             /* open file */
-            fp = inPr.OpenFile(fname, FileMode.Open, FileAccess.Read);
-            if (fp == null)
+            var targetName = inPr.FindFileByIncPath(fname);
+            if (targetName == null)
             {
-                outPr.FatalError("Can not open file!");
+                outPr.FatalError("file not found!");
                 return;
             }
 
-            /* get file size */
-            longsize = fp.Length;
-
-            /* check if it will fit in the rom */
-            if (((ctx.Bank << 13) + ctx.LocCnt + longsize) > ctx.RomLimit)
+            try
             {
-                fp.Close();
-                outPr.Error("ROM overflow!");
+                fsBin = new FileStream(targetName, FileMode.Open, FileAccess.Read);
+            }
+            catch(Exception e)
+            {
+                outPr.FatalError($"Can not open file '{targetName}'!");
                 return;
             }
 
-            var size = (int)longsize;
-            /* load data on last pass */
-            if (ctx.Pass == PassFlag.LAST_PASS)
+            int size = 0;
+            using (fsBin)
             {
-                var buf = new byte[size];
-                fp.Read(buf, 0, size);
-
-                var _bank = ctx.Bank;
-                var _loc = ctx.LocCnt;
-                var m = (byte)(ctx.Section + (ctx.Page << 5));
-                for (var i = 0; i < size; i++)
+                try
                 {
-                    ctx.Rom[_bank, _loc] = buf[i];
-                    ctx.Map[_bank, _loc] = m;
-                    if (++_loc == 0x2000)
+                    /* get file size */
+                    longsize = fsBin.Length;
+
+                    /* check if it will fit in the rom */
+                    if (((ctx.Bank << 13) + ctx.LocCnt + longsize) > ctx.RomLimit)
                     {
-                        _loc = 0;
-                        _bank++;
+                        fsBin.Close();
+                        outPr.Error("ROM overflow!");
+                        return;
+                    }
+
+                    size = (int)longsize;
+                    /* load data on last pass */
+                    if (ctx.Pass == PassFlag.LAST_PASS)
+                    {
+                        var buf = new byte[size];
+                        fsBin.Read(buf, 0, size);
+
+                        var _bank = ctx.Bank;
+                        var _loc = ctx.LocCnt;
+                        var m = (byte)(ctx.Section + (ctx.Page << 5));
+                        for (var i = 0; i < size; i++)
+                        {
+                            ctx.Rom[_bank, _loc] = buf[i];
+                            ctx.Map[_bank, _loc] = m;
+                            if (++_loc == 0x2000)
+                            {
+                                _loc = 0;
+                                _bank++;
+                            }
+                        }
+
+                        /* output line */
+                        outPr.PrintLn();
                     }
                 }
-
-                /* output line */
-                outPr.PrintLn();
+                catch(Exception e)
+                {
+                    outPr.FatalError($"file '{targetName}' read error!");
+                    return;
+                }
             }
-
-            /* close file */
-            fp.Close();
 
             /* update bank and location counters */
             ctx.Bank += (ctx.LocCnt + size) >> 13;
@@ -698,118 +717,126 @@ namespace NesAsmSharp.Assembler.Processors
             }
             catch (Exception e)
             {
-                outPr.FatalError("Can not open file!");
+                outPr.FatalError($"Can not open file '{fname}'!");
                 return;
             }
 
-            /* read loop */
-            while ((line_str = fp.ReadLine()) != null)
+            using (fp)
             {
-                var line = line_str.ToNullTerminatedCharArray();
-
-                if (line[0] == 'S')
+                try
                 {
-                    /* get record type */
-                    type = line[1];
-
-                    /* error on unsupported records */
-                    if ((type != '2') && (type != '8'))
+                    /* read loop */
+                    while ((line_str = fp.ReadLine()) != null)
                     {
-                        outPr.Error("Unsupported S-record type!");
-                        return;
-                    }
+                        var line = line_str.ToNullTerminatedCharArray();
 
-                    /* get count and address */
-                    cnt = htoi(line, 2, 2);
-                    addr = htoi(line, 4, 6);
-
-                    if ((line.Length < 12) || (cnt < 4) || (addr == -1))
-                    {
-                        outPr.Error("Incorrect S-record line!");
-                        return;
-                    }
-
-                    /* adjust count */
-                    cnt -= 4;
-
-                    /* checksum */
-                    chksum = cnt + ((addr >> 16) & 0xFF) +
-                                   ((addr >> 8) & 0xFF) +
-                                   ((addr) & 0xFF) + 4;
-
-                    /* get data */
-                    ptr = 10;
-
-                    for (i = 0; i < cnt; i++)
-                    {
-                        data = htoi(line, ptr, 2);
-                        buffer[i] = (byte)data;
-                        chksum += data;
-                        ptr += 2;
-
-                        if (data == -1)
+                        if (line[0] == 'S')
                         {
-                            outPr.Error("Syntax error in a S-record line!");
-                            return;
-                        }
-                    }
+                            /* get record type */
+                            type = line[1];
 
-                    /* checksum test */
-                    data = htoi(line, ptr, 2);
-                    chksum = (~chksum) & 0xFF;
-
-                    if (data != chksum)
-                    {
-                        outPr.Error("Checksum error!");
-                        return;
-                    }
-
-                    /* end record */
-                    if (type == '8') break;
-
-                    /* data record */
-                    if (type == '2')
-                    {
-                        /* set the location counter */
-                        if ((addr & 0xFFFF0000) != 0)
-                        {
-                            outPr.Error("Invalid address!");
-                            return;
-                        }
-                        ctx.Page = (addr >> 13) & 0x07;
-                        ctx.LocCnt = (addr & 0x1FFF);
-
-                        /* define label */
-                        if (flag == 0)
-                        {
-                            flag = 1;
-                            symPr.LablDef(ctx.LocCnt, 1);
-
-                            /* output */
-                            if (ctx.Pass == PassFlag.LAST_PASS)
+                            /* error on unsupported records */
+                            if ((type != '2') && (type != '8'))
                             {
-                                outPr.LoadLc(ctx.LocCnt, 0);
+                                outPr.Error("Unsupported S-record type!");
+                                return;
                             }
-                        }
 
-                        /* copy data */
-                        if (ctx.Pass == PassFlag.LAST_PASS)
-                        {
+                            /* get count and address */
+                            cnt = htoi(line, 2, 2);
+                            addr = htoi(line, 4, 6);
+
+                            if ((line.Length < 12) || (cnt < 4) || (addr == -1))
+                            {
+                                outPr.Error("Incorrect S-record line!");
+                                return;
+                            }
+
+                            /* adjust count */
+                            cnt -= 4;
+
+                            /* checksum */
+                            chksum = cnt + ((addr >> 16) & 0xFF) +
+                                           ((addr >> 8) & 0xFF) +
+                                           ((addr) & 0xFF) + 4;
+
+                            /* get data */
+                            ptr = 10;
+
                             for (i = 0; i < cnt; i++)
                             {
-                                outPr.PutByte(ctx.LocCnt + i, buffer[i]);
+                                data = htoi(line, ptr, 2);
+                                buffer[i] = (byte)data;
+                                chksum += data;
+                                ptr += 2;
+
+                                if (data == -1)
+                                {
+                                    outPr.Error("Syntax error in a S-record line!");
+                                    return;
+                                }
+                            }
+
+                            /* checksum test */
+                            data = htoi(line, ptr, 2);
+                            chksum = (~chksum) & 0xFF;
+
+                            if (data != chksum)
+                            {
+                                outPr.Error("Checksum error!");
+                                return;
+                            }
+
+                            /* end record */
+                            if (type == '8') break;
+
+                            /* data record */
+                            if (type == '2')
+                            {
+                                /* set the location counter */
+                                if ((addr & 0xFFFF0000) != 0)
+                                {
+                                    outPr.Error("Invalid address!");
+                                    return;
+                                }
+                                ctx.Page = (addr >> 13) & 0x07;
+                                ctx.LocCnt = (addr & 0x1FFF);
+
+                                /* define label */
+                                if (flag == 0)
+                                {
+                                    flag = 1;
+                                    symPr.LablDef(ctx.LocCnt, 1);
+
+                                    /* output */
+                                    if (ctx.Pass == PassFlag.LAST_PASS)
+                                    {
+                                        outPr.LoadLc(ctx.LocCnt, 0);
+                                    }
+                                }
+
+                                /* copy data */
+                                if (ctx.Pass == PassFlag.LAST_PASS)
+                                {
+                                    for (i = 0; i < cnt; i++)
+                                    {
+                                        outPr.PutByte(ctx.LocCnt + i, buffer[i]);
+                                    }
+                                }
+
+                                /* update location counter */
+                                ctx.LocCnt += cnt;
+                                size += cnt;
                             }
                         }
-
-                        /* update location counter */
-                        ctx.LocCnt += cnt;
-                        size += cnt;
                     }
                 }
+                catch(Exception e)
+                {
+                    outPr.FatalError($"file '{fname}' read error!");
+                    return;
+                }
             }
-
-            /* close file */
-            fp.Close();
 
             /* define label */
             if (flag == 0)
@@ -1278,7 +1305,7 @@ namespace NesAsmSharp.Assembler.Processors
                         new NesAsmOpecode(null,  "ENDIF",        asmPr.DoEndif,     OpCodeFlag.PSEUDO, AsmDirective.P_ENDIF,   0),
                         new NesAsmOpecode(null,  "ENDM",         macroPr.Do_Endm,      OpCodeFlag.PSEUDO, AsmDirective.P_ENDM,    0),
                         new NesAsmOpecode(null,  "ENDP",         procPr.DoEndp,      OpCodeFlag.PSEUDO, AsmDirective.P_ENDP,    (int)AsmDirective.P_PROC),
-                        new NesAsmOpecode(null, "ENDPROCGROUP",  procPr.DoEndp,      OpCodeFlag.PSEUDO, AsmDirective.P_ENDPG,   (int)AsmDirective.P_PGROUP),
+                        new NesAsmOpecode(null,  "ENDPROCGROUP", procPr.DoEndp,      OpCodeFlag.PSEUDO, AsmDirective.P_ENDPG,   (int)AsmDirective.P_PGROUP),
                         new NesAsmOpecode(null,  "EQU",          do_equ,       OpCodeFlag.PSEUDO, AsmDirective.P_EQU,     0),
                         new NesAsmOpecode(null,  "FAIL",         do_fail,      OpCodeFlag.PSEUDO, AsmDirective.P_FAIL,    0),
                         new NesAsmOpecode(null,  "FUNC",         funcPr.DoFunc,      OpCodeFlag.PSEUDO, AsmDirective.P_FUNC,    0),

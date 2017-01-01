@@ -102,7 +102,7 @@ namespace NesAsmSharp.Assembler.Processors
 
             /* browse the hash table */
             /* return result */
-            return (ctx.MacroTbl.ContainsKey(name)) ? ctx.MacroTbl[name] : null;
+            return ctx.MacroTbl.GetValueOrDefault(name);
         }
 
         /* extract macro arguments */

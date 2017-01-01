@@ -401,8 +401,7 @@ namespace NesAsmSharp.Assembler.Processors
             var symstr = ctx.Symbol.ToStringFromNullTerminated();
 
             /* search the procedure in the hash table */
-            /* ok */
-            return ctx.ProcTbl.ContainsKey(symstr) ? ctx.ProcTbl[symstr] : null;
+            return ctx.ProcTbl.GetValueOrDefault(symstr);
         }
 
         /// <summary>

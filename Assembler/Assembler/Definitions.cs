@@ -10,9 +10,6 @@ namespace NesAsmSharp.Assembler
 {
     public static class Definition
     {
-        public static readonly char PATH_SEPARATOR = '\\';
-        public static readonly string PATH_SEPARATOR_STR = "\\";
-
         /* reserved bank index */
         public static readonly int RESERVED_BANK = 0xF0;
         public static readonly int PROC_BANK = 0xF1;

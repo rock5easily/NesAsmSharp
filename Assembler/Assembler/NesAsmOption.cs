@@ -55,11 +55,6 @@ namespace NesAsmSharp.Assembler
         public NesAsmOption()
         {
             AsmOpt = new Dictionary<AssemblerOption, bool>();
-
-            foreach (AssemblerOption opt in Enum.GetValues(typeof(AssemblerOption)))
-            {
-                AsmOpt[opt] = false;
-            }
             // set default encoding
             this.Encoding = Encoding.Default;
             this.StdOut = Console.Out;
