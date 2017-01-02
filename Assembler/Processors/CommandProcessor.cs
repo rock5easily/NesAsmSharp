@@ -23,7 +23,7 @@ namespace NesAsmSharp.Assembler.Processors
             0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0C,
             0x0F, 0x0F, 0x0F, 0x0C, 0x0C, 0x0C, 0x0C, 0x0F, 0x0F, 0x0F,
             0x0F, 0x0F, 0x0C, 0x0C, 0x0C, 0x04, 0x04, 0x04, 0x04, 0x04,
-            0x0F, 0x0F
+            0x0F, 0x0F, 0x0F, 0x0F
         };
 
         public CommandProcessor(NesAsmContext ctx) : base(ctx)
@@ -1265,6 +1265,101 @@ namespace NesAsmSharp.Assembler.Processors
             ctx.BankCat[bank] = true;
         }
 
+        /// <summary>
+        /// .beginregion pseudo
+        /// バイト数測定区間(開始)
+        /// </summary>
+        /// <param name="ip"></param>
+        public void DoBeginregion(ref int ip)
+        {
+            if (ctx.Pass == PassFlag.LAST_PASS) return;
+
+            /* get region name */
+            string name;
+            if (codePr.GetString(ref ip, out name, Definition.REGION_NAME_MAX) == 0)
+            {
+                outPr.Error("BEGINREGION: region name is required!");
+                return;
+            }
+            if (name == "")
+            {
+                outPr.Error("BEGINREGION: region name must be non-empty string");
+                return;
+            }
+
+            var region = ctx.RegionTbl.GetValueOrDefault(name);
+            if (region != null)
+            {
+                if (region.BeginBank < 0 && region.BeginLocCnt < 0)
+                {
+                    region.BeginBank = ctx.Bank;
+                    region.BeginLocCnt = ctx.LocCnt;
+                }
+                else
+                {
+                    outPr.Error($"BEGINREGION: duplicated region name '{name}'");
+                    return;
+                }
+            }
+            else
+            {
+                region = new NesAsmRegion()
+                {
+                    BeginBank = ctx.Bank,
+                    BeginLocCnt = ctx.LocCnt,
+                    Name = name
+                };
+                ctx.RegionTbl[name] = region;
+            }
+        }
+
+        /// <summary>
+        /// .endregion pseudo
+        /// バイト数測定区間(終了)
+        /// </summary>
+        /// <param name="ip"></param>
+        public void DoEndregion(ref int ip)
+        {
+            if (ctx.Pass == PassFlag.LAST_PASS) return;
+
+            /* get region name */
+            string name;
+            if (codePr.GetString(ref ip, out name, Definition.REGION_NAME_MAX) == 0)
+            {
+                outPr.Error("ENDREGION: region name is required!");
+                return;
+            }
+            if (name == "")
+            {
+                outPr.Error("ENDREGION: region name must be non-empty string");
+                return;
+            }
+
+            var region = ctx.RegionTbl.GetValueOrDefault(name);
+            if (region != null)
+            {
+                if (region.EndBank < 0 && region.EndLocCnt < 0)
+                {
+                    region.EndBank = ctx.Bank;
+                    region.EndLocCnt = ctx.LocCnt;
+                }
+                else
+                {
+                    outPr.Error($"ENDREGION: duplicated region name '{name}'");
+                    return;
+                }
+            }
+            else
+            {
+                region = new NesAsmRegion()
+                {
+                    EndBank = ctx.Bank,
+                    EndLocCnt = ctx.LocCnt,
+                    Name = name
+                };
+                ctx.RegionTbl[name] = region;
+            }
+        }
 
         /// <summary>
         /// hex-style string to int
@@ -1354,6 +1449,8 @@ namespace NesAsmSharp.Assembler.Processors
                         new NesAsmOpecode("WORD",         DoDw,             OpCodeFlag.PSEUDO, AsmDirective.P_DW,      0),
                         new NesAsmOpecode("ZP",           DoSection,        OpCodeFlag.PSEUDO, AsmDirective.P_ZP,      (int)SectionType.S_ZP),
                         new NesAsmOpecode("CATBANK",      DoCatbank,        OpCodeFlag.PSEUDO, AsmDirective.P_CATBANK, 0),
+                        new NesAsmOpecode("BEGINREGION",  DoBeginregion,    OpCodeFlag.PSEUDO, AsmDirective.P_BEGINREGION, 0),
+                        new NesAsmOpecode("ENDREGION",    DoEndregion,      OpCodeFlag.PSEUDO, AsmDirective.P_ENDREGION, 0),
 
                         new NesAsmOpecode(".BANK",         DoBank,          OpCodeFlag.PSEUDO, AsmDirective.P_BANK,    0),
                         new NesAsmOpecode(".BSS",          DoSection,       OpCodeFlag.PSEUDO, AsmDirective.P_BSS,     (int)SectionType.S_BSS),
@@ -1393,6 +1490,8 @@ namespace NesAsmSharp.Assembler.Processors
                         new NesAsmOpecode(".WORD",         DoDw,            OpCodeFlag.PSEUDO, AsmDirective.P_DW,      0),
                         new NesAsmOpecode(".ZP",           DoSection,       OpCodeFlag.PSEUDO, AsmDirective.P_ZP,      (int)SectionType.S_ZP),
                         new NesAsmOpecode(".CATBANK",      DoCatbank,       OpCodeFlag.PSEUDO, AsmDirective.P_CATBANK, 0),
+                        new NesAsmOpecode(".BEGINREGION",  DoBeginregion,    OpCodeFlag.PSEUDO, AsmDirective.P_BEGINREGION, 0),
+                        new NesAsmOpecode(".ENDREGION",    DoEndregion,      OpCodeFlag.PSEUDO, AsmDirective.P_ENDREGION, 0),
                     };
                 }
                 return basePseudo;

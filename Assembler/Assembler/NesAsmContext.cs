@@ -51,6 +51,7 @@ namespace NesAsmSharp.Assembler
         public PassFlag Pass { get; set; } // pass counter
         public char[] PrLnBuf { get; private set; } // input line buffer
         public char[] TmpLnBuf { get; private set; } // temporary line buffer
+        public Dictionary<string, NesAsmRegion> RegionTbl { get; private set; }
         /// <summary>
         /// バンク跨ぎ設定フラグ
         /// </summary>
@@ -164,6 +165,7 @@ namespace NesAsmSharp.Assembler
             TmpLnBuf = new char[Definition.LAST_CH_POS + 4];
             Symbol = new char[Definition.SBOLSZ + 1];
             BankCat = new bool[Definition.BANK_NUM_MAX];
+            RegionTbl = new Dictionary<string, NesAsmRegion>();
 
             // macro.c
             MacroArg = new char[8, 10][];
