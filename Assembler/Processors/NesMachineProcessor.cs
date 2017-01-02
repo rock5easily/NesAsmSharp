@@ -281,19 +281,18 @@ namespace NesAsmSharp.Assembler.Processors
                 {
                     nesPseudo = new NesAsmOpecode[]
                     {
-                        new NesAsmOpecode(null, "DEFCHR",   DoNesDefchr,  OpCodeFlag.PSEUDO,    AsmDirective.P_DEFCHR,    0),
-                        new NesAsmOpecode(null, "INESPRG",  DoNesInesPrg, OpCodeFlag.PSEUDO,    AsmDirective.P_INESPRG,   0),
-                        new NesAsmOpecode(null, "INESCHR",  DoNesInesChr, OpCodeFlag.PSEUDO,    AsmDirective.P_INESCHR,   0),
-                        new NesAsmOpecode(null, "INESMAP",  DoNesInesMap, OpCodeFlag.PSEUDO,    AsmDirective.P_INESMAP,   0),
-                        new NesAsmOpecode(null, "INESMIR",  DoNesInesMir, OpCodeFlag.PSEUDO,    AsmDirective.P_INESMIR,   0),
-                        new NesAsmOpecode(null, "AUTOZP",   DoNesAutoZP,  OpCodeFlag.PSEUDO,    AsmDirective.P_AUTOZP,    0),
-                        new NesAsmOpecode(null, ".DEFCHR",  DoNesDefchr,  OpCodeFlag.PSEUDO,    AsmDirective.P_DEFCHR,    0),
-                        new NesAsmOpecode(null, ".INESPRG", DoNesInesPrg, OpCodeFlag.PSEUDO,    AsmDirective.P_INESPRG,   0),
-                        new NesAsmOpecode(null, ".INESCHR", DoNesInesChr, OpCodeFlag.PSEUDO,    AsmDirective.P_INESCHR,   0),
-                        new NesAsmOpecode(null, ".INESMAP", DoNesInesMap, OpCodeFlag.PSEUDO,    AsmDirective.P_INESMAP,   0),
-                        new NesAsmOpecode(null, ".INESMIR", DoNesInesMir, OpCodeFlag.PSEUDO,    AsmDirective.P_INESMIR,   0),
-                        new NesAsmOpecode(null, ".AUTOZP",  DoNesAutoZP,  OpCodeFlag.PSEUDO,    AsmDirective.P_AUTOZP,    0),
-                        new NesAsmOpecode(null, null,       null,         0,                    0,                        0)
+                        new NesAsmOpecode("DEFCHR",   DoNesDefchr,  OpCodeFlag.PSEUDO, AsmDirective.P_DEFCHR,  0),
+                        new NesAsmOpecode("INESPRG",  DoNesInesPrg, OpCodeFlag.PSEUDO, AsmDirective.P_INESPRG, 0),
+                        new NesAsmOpecode("INESCHR",  DoNesInesChr, OpCodeFlag.PSEUDO, AsmDirective.P_INESCHR, 0),
+                        new NesAsmOpecode("INESMAP",  DoNesInesMap, OpCodeFlag.PSEUDO, AsmDirective.P_INESMAP, 0),
+                        new NesAsmOpecode("INESMIR",  DoNesInesMir, OpCodeFlag.PSEUDO, AsmDirective.P_INESMIR, 0),
+                        new NesAsmOpecode("AUTOZP",   DoNesAutoZP,  OpCodeFlag.PSEUDO, AsmDirective.P_AUTOZP,  0),
+                        new NesAsmOpecode(".DEFCHR",  DoNesDefchr,  OpCodeFlag.PSEUDO, AsmDirective.P_DEFCHR,  0),
+                        new NesAsmOpecode(".INESPRG", DoNesInesPrg, OpCodeFlag.PSEUDO, AsmDirective.P_INESPRG, 0),
+                        new NesAsmOpecode(".INESCHR", DoNesInesChr, OpCodeFlag.PSEUDO, AsmDirective.P_INESCHR, 0),
+                        new NesAsmOpecode(".INESMAP", DoNesInesMap, OpCodeFlag.PSEUDO, AsmDirective.P_INESMAP, 0),
+                        new NesAsmOpecode(".INESMIR", DoNesInesMir, OpCodeFlag.PSEUDO, AsmDirective.P_INESMIR, 0),
+                        new NesAsmOpecode(".AUTOZP",  DoNesAutoZP,  OpCodeFlag.PSEUDO, AsmDirective.P_AUTOZP,  0)
                     };
                 }
                 return nesPseudo;

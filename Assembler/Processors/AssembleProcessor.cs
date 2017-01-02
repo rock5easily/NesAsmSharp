@@ -234,7 +234,7 @@ namespace NesAsmSharp.Assembler.Processors
             /* generate code */
             if (ctx.OpFlg == OpCodeFlag.PSEUDO)
             {
-                cmdPr.do_pseudo(ref ip);
+                cmdPr.DoPseudo(ref ip);
             }
             else if (symPr.LablDef(ctx.LocCnt, 1) == -1)
             {
@@ -274,14 +274,12 @@ namespace NesAsmSharp.Assembler.Processors
             char[] name = new char[16];
             char c;
             bool flag;
-            int hash;
             int i;
 
             /* get instruction name */
             i = 0;
             ctx.OpExt = (char)0;
             flag = false;
-            hash = 0;
 
             for (;;)
             {
@@ -308,8 +306,6 @@ namespace NesAsmSharp.Assembler.Processors
 
                 /* store char */
                 name[i++] = c;
-                hash += c;
-                hash = (hash << 3) + (hash >> 5) + c;
                 idx++;
 
                 /* break if '=' directive */
@@ -328,14 +324,13 @@ namespace NesAsmSharp.Assembler.Processors
             /* return if no instruction */
             if (i == 0) return (-2);
 
-            /* search the instruction in the hash table */
-            ptr = ctx.InstTbl[hash & 0xFF];
-
             var namestr = name.ToStringFromNullTerminated();
-            while (ptr != null)
+
+            /* search the instruction in the hash table */
+            ptr = ctx.InstTbl.GetValueOrDefault(namestr);
+
+            if (ptr != null)
             {
-                if (namestr == ptr.Name)
-                {
                     ctx.OpProc = ptr.Proc;
                     ctx.OpFlg = ptr.Flag;
                     ctx.OpVal = ptr.Value;
@@ -350,8 +345,6 @@ namespace NesAsmSharp.Assembler.Processors
                             (OpCodeFlag.IMM | OpCodeFlag.ZP | OpCodeFlag.ZP_X | OpCodeFlag.ZP_IND_Y | OpCodeFlag.ABS | OpCodeFlag.ABS_X | OpCodeFlag.ABS_Y)) != 0) return (-1);
                     }
                     return (i);
-                }
-                ptr = ptr.Next;
             }
 
             /* didn't find this instruction */
@@ -365,38 +358,18 @@ namespace NesAsmSharp.Assembler.Processors
         /// <param name="optbl"></param>
         public void AddInst(NesAsmOpecode[] optbl)
         {
-            int hash;
-            int len;
-            int i;
-            string name;
-            char c;
-            int idx = 0;
-
             if (optbl == null) return;
 
             /* parse list */
-            while (optbl[idx].Name != null)
+            foreach (var inst in optbl)
             {
                 /* calculate instruction hash value */
-                hash = 0;
-                name = optbl[idx].Name;
-                len = name.Length;
-
-                for (i = 0; i < len; i++)
+                var name = inst.Name;
+                if (!string.IsNullOrEmpty(name))
                 {
-                    c = name[i];
-                    hash += c;
-                    hash = (hash << 3) + (hash >> 5) + c;
+                    /* insert the instruction in the hash table */
+                    ctx.InstTbl[name] = inst;
                 }
-
-                hash &= 0xFF;
-
-                /* insert the instruction in the hash table */
-                optbl[idx].Next = ctx.InstTbl[hash];
-                ctx.InstTbl[hash] = optbl[idx];
-
-                /* next instruction */
-                idx++;
             }
         }
 

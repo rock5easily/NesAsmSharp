@@ -37,7 +37,7 @@ namespace NesAsmSharp.Assembler
         public bool StopPass { get; set; } // stop the program {get; set; } set by fatal_error()
         public int ErrCnt { get; set; } // error counter
         public NesAsmMachine Machine { get; set; }
-        public NesAsmOpecode[] InstTbl { get; private set; } // instructions hash table
+        public Dictionary<string, NesAsmOpecode> InstTbl { get; private set; } // instructions hash table
         public Dictionary<string, NesAsmSymbol> HashTbl { get; private set; } // label hash table
         public NesAsmSymbol LablPtr { get; set; } // label pointer into symbol table
         public NesAsmSymbol GLablPtr { get; set; } // pointer to the latest defined global label
@@ -153,7 +153,7 @@ namespace NesAsmSharp.Assembler
             BankLocCnt = new int[4, 256];
             BankPage = new int[4, 256];
             SectionBank = new int[4];
-            InstTbl = new NesAsmOpecode[256];
+            InstTbl = new Dictionary<string, NesAsmOpecode>();
             HashTbl = new Dictionary<string, NesAsmSymbol>();
             BankGLabl = new NesAsmSymbol[4, 256];
             PrLnBuf = new char[Definition.LAST_CH_POS + 4];

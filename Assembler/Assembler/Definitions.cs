@@ -283,20 +283,14 @@ namespace NesAsmSharp.Assembler
 
     public class NesAsmOpecode
     {
-        public NesAsmOpecode Next { get; set; }
         public string Name { get; set; }
         public OpProcAction Proc { get; set; }
         public OpCodeFlag Flag { get; set; }
         public AsmDirective Value { get; set; }
         public int TypeIdx { get; set; }
 
-        public NesAsmOpecode()
+        public NesAsmOpecode(string name, OpProcAction proc, OpCodeFlag flag, int value, int typeIdx)
         {
-        }
-
-        public NesAsmOpecode(NesAsmOpecode next, string name, OpProcAction proc, OpCodeFlag flag, int value, int typeIdx)
-        {
-            Next = next;
             Name = name;
             Proc = proc;
             Flag = flag;
@@ -304,9 +298,8 @@ namespace NesAsmSharp.Assembler
             TypeIdx = typeIdx;
         }
 
-        public NesAsmOpecode(NesAsmOpecode next, string name, OpProcAction proc, OpCodeFlag flag, AsmDirective value, int typeIdx)
+        public NesAsmOpecode(string name, OpProcAction proc, OpCodeFlag flag, AsmDirective value, int typeIdx)
         {
-            Next = next;
             Name = name;
             Proc = proc;
             Flag = flag;
@@ -351,7 +344,13 @@ namespace NesAsmSharp.Assembler
 
     public class NesAsmSymbol
     {
+        /// <summary>
+        /// 次のローカルラベルへの参照(自身がローカルラベルの場合のみ使用)
+        /// </summary>
         public NesAsmSymbol Next { get; set; }
+        /// <summary>
+        /// ローカルラベルへの参照(自身がグローバルラベルの場合のみ使用)
+        /// </summary>
         public NesAsmSymbol Local { get; set; }
         public NesAsmProc Proc { get; set; }
         public SymbolFlag Type { get; set; }
@@ -377,14 +376,12 @@ namespace NesAsmSharp.Assembler
 
     public class NesAsmMacro
     {
-        public NesAsmMacro Next { get; set; }
         public NesAsmLine Line { get; set; }
         public string Name { get; set; }
     }
 
     public class NesAsmFunc
     {
-        public NesAsmFunc Next { get; set; }
         public char[] Line { get; private set; }
         public string Name { get; set; }
 

@@ -34,7 +34,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// pseudo instruction processor
         /// </summary>
         /// <param name="ip"></param>
-        public void do_pseudo(ref int ip)
+        public void DoPseudo(ref int ip)
         {
             string str;
             int old_bank;
@@ -106,7 +106,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// .list pseudo
         /// </summary>
         /// <param name="ip"></param>
-        public void do_list(ref int ip)
+        public void DoList(ref int ip)
         {
             /* check end of line */
             if (asmPr.CheckEOL(ref ip) == 0) return;
@@ -119,7 +119,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// .mlist pseudo
         /// </summary>
         /// <param name="ip"></param>
-        public void do_mlist(ref int ip)
+        public void DoMlist(ref int ip)
         {
             /* check end of line */
             if (asmPr.CheckEOL(ref ip) == 0) return;
@@ -131,7 +131,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// .nolist pseudo
         /// </summary>
         /// <param name="ip"></param>
-        public void do_nolist(ref int ip)
+        public void DoNolist(ref int ip)
         {
             /* check end of line */
             if (asmPr.CheckEOL(ref ip) == 0) return;
@@ -143,7 +143,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// .nomlist pseudo
         /// </summary>
         /// <param name="ip"></param>
-        public void do_nomlist(ref int ip)
+        public void DoNomlist(ref int ip)
         {
             /* check end of line */
             if (asmPr.CheckEOL(ref ip) == 0) return;
@@ -155,7 +155,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// .db pseudo
         /// </summary>
         /// <param name="ip"></param>
-        public void do_db(ref int ip)
+        public void DoDb(ref int ip)
         {
             char c;
 
@@ -276,7 +276,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// .dw pseudo
         /// </summary>
         /// <param name="ip"></param>
-        public void do_dw(ref int ip)
+        public void DoDw(ref int ip)
         {
             char c;
 
@@ -353,7 +353,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// .equ pseudo
         /// </summary>
         /// <param name="ip"></param>
-        public void do_equ(ref int ip)
+        public void DoEqu(ref int ip)
         {
             /* get value */
             if (exprPr.Evaluate(ref ip, ';') == 0) return;
@@ -373,7 +373,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// .page pseudo
         /// </summary>
         /// <param name="ip"></param>
-        public void do_page(ref int ip)
+        public void DoPage(ref int ip)
         {
             /* not allowed in procs */
             if (ctx.ProcPtr != null)
@@ -406,7 +406,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// .org pseudo
         /// </summary>
         /// <param name="ip"></param>
-        public void do_org(ref int ip)
+        public void DoOrg(ref int ip)
         {
             /* get the .org value */
             if (exprPr.Evaluate(ref ip, ';') == 0) return;
@@ -474,7 +474,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// .bank pseudo
         /// </summary>
         /// <param name="ip"></param>
-        public void do_bank(ref int ip)
+        public void DoBank(ref int ip)
         {
             string name;
 
@@ -554,7 +554,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// .incbin pseudo
         /// </summary>
         /// <param name="ip"></param>
-        public void do_incbin(ref int ip)
+        public void DoIncbin(ref int ip)
         {
             FileStream fsBin;
             int p;
@@ -572,7 +572,7 @@ namespace NesAsmSharp.Assembler.Processors
                     /* check if it's a mx file */
                     if (fname.Substring(p).ToLower() == ".mx")
                     {
-                        do_mx(fname);
+                        DoMx(fname);
                         return;
                     }
                     /* check if it's a map file */
@@ -697,7 +697,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// load a mx file
         /// </summary>
         /// <param name="fname"></param>
-        public void do_mx(string fname)
+        public void DoMx(string fname)
         {
             StreamReader fp;
             int ptr;
@@ -878,7 +878,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// .include pseudo
         /// </summary>
         /// <param name="ip"></param>
-        public void do_include(ref int ip)
+        public void DoInclude(ref int ip)
         {
             string fname;
 
@@ -906,7 +906,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// .rsset pseudo
         /// </summary>
         /// <param name="ip"></param>
-        public void do_rsset(ref int ip)
+        public void DoRsset(ref int ip)
         {
             /* define label */
             symPr.LablDef(ctx.LocCnt, 1);
@@ -934,7 +934,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// .rs pseudo
         /// </summary>
         /// <param name="ip"></param>
-        public void do_rs(ref int ip)
+        public void DoRs(ref int ip)
         {
             /* define label */
             symPr.LablDef(ctx.RSBase, 0);
@@ -961,7 +961,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// .ds pseudo
         /// </summary>
         /// <param name="ip"></param>
-        public void do_ds(ref int ip)
+        public void DoDs(ref int ip)
         {
             int limit = 0;
             int addr;
@@ -1044,7 +1044,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// .fail pseudo
         /// </summary>
         /// <param name="ip"></param>
-        public void do_fail(ref int ip)
+        public void DoFail(ref int ip)
         {
             outPr.FatalError("Compilation failed!");
         }
@@ -1053,7 +1053,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// .zp/.bss/.code/.data pseudo
         /// </summary>
         /// <param name="ip"></param>
-        public void do_section(ref int ip)
+        public void DoSection(ref int ip)
         {
             if (ctx.ProcPtr != null)
             {
@@ -1094,7 +1094,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// .inchr pseudo - convert a PCX to 8x8 character tiles
         /// </summary>
         /// <param name="ip"></param>
-        public void do_incchr(ref int ip)
+        public void DoIncchr(ref int ip)
         {
             byte[] buffer = new byte[32];
             int i, j;
@@ -1162,7 +1162,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// .opt pseudo - compilation options
         /// </summary>
         /// <param name="ip"></param>
-        public void do_opt(ref int ip)
+        public void DoOpt(ref int ip)
         {
             char c;
             char flag;
@@ -1290,85 +1290,84 @@ namespace NesAsmSharp.Assembler.Processors
                 {
                     basePseudo = new NesAsmOpecode[]
                     {
-                        new NesAsmOpecode(null,  "=",            do_equ,       OpCodeFlag.PSEUDO, AsmDirective.P_EQU,     0),
+                        new NesAsmOpecode("=",            DoEqu,            OpCodeFlag.PSEUDO, AsmDirective.P_EQU,     0),
 
-                        new NesAsmOpecode(null,  "BANK",         do_bank,      OpCodeFlag.PSEUDO, AsmDirective.P_BANK,    0),
-                        new NesAsmOpecode(null,  "BSS",          do_section,   OpCodeFlag.PSEUDO, AsmDirective.P_BSS,     (int)SectionType.S_BSS),
-                        new NesAsmOpecode(null,  "BYTE",         do_db,        OpCodeFlag.PSEUDO, AsmDirective.P_DB,      0),
-                        new NesAsmOpecode(null,  "CALL",         procPr.DoCall,      OpCodeFlag.PSEUDO, AsmDirective.P_CALL,    0),
-                        new NesAsmOpecode(null,  "CODE",         do_section,   OpCodeFlag.PSEUDO, AsmDirective.P_CODE,    (int)SectionType.S_CODE),
-                        new NesAsmOpecode(null,  "DATA",         do_section,   OpCodeFlag.PSEUDO, AsmDirective.P_DATA,    (int)SectionType.S_DATA),
-                        new NesAsmOpecode(null,  "DB",           do_db,        OpCodeFlag.PSEUDO, AsmDirective.P_DB,      0),
-                        new NesAsmOpecode(null,  "DW",           do_dw,        OpCodeFlag.PSEUDO, AsmDirective.P_DW,      0),
-                        new NesAsmOpecode(null,  "DS",           do_ds,        OpCodeFlag.PSEUDO, AsmDirective.P_DS,      0),
-                        new NesAsmOpecode(null,  "ELSE",         asmPr.DoElse,      OpCodeFlag.PSEUDO, AsmDirective.P_ELSE,    0),
-                        new NesAsmOpecode(null,  "ENDIF",        asmPr.DoEndif,     OpCodeFlag.PSEUDO, AsmDirective.P_ENDIF,   0),
-                        new NesAsmOpecode(null,  "ENDM",         macroPr.Do_Endm,      OpCodeFlag.PSEUDO, AsmDirective.P_ENDM,    0),
-                        new NesAsmOpecode(null,  "ENDP",         procPr.DoEndp,      OpCodeFlag.PSEUDO, AsmDirective.P_ENDP,    (int)AsmDirective.P_PROC),
-                        new NesAsmOpecode(null,  "ENDPROCGROUP", procPr.DoEndp,      OpCodeFlag.PSEUDO, AsmDirective.P_ENDPG,   (int)AsmDirective.P_PGROUP),
-                        new NesAsmOpecode(null,  "EQU",          do_equ,       OpCodeFlag.PSEUDO, AsmDirective.P_EQU,     0),
-                        new NesAsmOpecode(null,  "FAIL",         do_fail,      OpCodeFlag.PSEUDO, AsmDirective.P_FAIL,    0),
-                        new NesAsmOpecode(null,  "FUNC",         funcPr.DoFunc,      OpCodeFlag.PSEUDO, AsmDirective.P_FUNC,    0),
-                        new NesAsmOpecode(null,  "IF",           asmPr.DoIf,        OpCodeFlag.PSEUDO, AsmDirective.P_IF,      0),
-                        new NesAsmOpecode(null,  "IFDEF",        asmPr.DoIfdef,     OpCodeFlag.PSEUDO, AsmDirective.P_IFDEF,   1),
-                        new NesAsmOpecode(null,  "IFNDEF",       asmPr.DoIfdef,     OpCodeFlag.PSEUDO, AsmDirective.P_IFNDEF,  0),
-                        new NesAsmOpecode(null,  "INCBIN",       do_incbin,    OpCodeFlag.PSEUDO, AsmDirective.P_INCBIN,  0),
-                        new NesAsmOpecode(null,  "INCLUDE",      do_include,   OpCodeFlag.PSEUDO, AsmDirective.P_INCLUDE, 0),
-                        new NesAsmOpecode(null,  "INCCHR",       do_incchr,    OpCodeFlag.PSEUDO, AsmDirective.P_INCCHR,  0xEA),
-                        new NesAsmOpecode(null,  "LIST",         do_list,      OpCodeFlag.PSEUDO, AsmDirective.P_LIST,    0),
-                        new NesAsmOpecode(null,  "MAC",          macroPr.DoMacro,     OpCodeFlag.PSEUDO, AsmDirective.P_MACRO,   0),
-                        new NesAsmOpecode(null,  "MACRO",        macroPr.DoMacro,     OpCodeFlag.PSEUDO, AsmDirective.P_MACRO,   0),
-                        new NesAsmOpecode(null,  "MLIST",        do_mlist,     OpCodeFlag.PSEUDO, AsmDirective.P_MLIST,   0),
-                        new NesAsmOpecode(null,  "NOLIST",       do_nolist,    OpCodeFlag.PSEUDO, AsmDirective.P_NOLIST,  0),
-                        new NesAsmOpecode(null,  "NOMLIST",      do_nomlist,   OpCodeFlag.PSEUDO, AsmDirective.P_NOMLIST, 0),
-                        new NesAsmOpecode(null,  "OPT",          do_opt,       OpCodeFlag.PSEUDO, AsmDirective.P_OPT,     0),
-                        new NesAsmOpecode(null,  "ORG",          do_org,       OpCodeFlag.PSEUDO, AsmDirective.P_ORG,     0),
-                        new NesAsmOpecode(null,  "PAGE",         do_page,      OpCodeFlag.PSEUDO, AsmDirective.P_PAGE,    0),
-                        new NesAsmOpecode(null,  "PROC",         procPr.DoProc,      OpCodeFlag.PSEUDO, AsmDirective.P_PROC,    (int)AsmDirective.P_PROC),
-                        new NesAsmOpecode(null,  "PROCGROUP",    procPr.DoProc,      OpCodeFlag.PSEUDO, AsmDirective.P_PGROUP,  (int)AsmDirective.P_PGROUP),
-                        new NesAsmOpecode(null,  "RSSET",        do_rsset,     OpCodeFlag.PSEUDO, AsmDirective.P_RSSET,   0),
-                        new NesAsmOpecode(null,  "RS",           do_rs,        OpCodeFlag.PSEUDO, AsmDirective.P_RS,      0),
-                        new NesAsmOpecode(null,  "WORD",         do_dw,        OpCodeFlag.PSEUDO, AsmDirective.P_DW,      0),
-                        new NesAsmOpecode(null,  "ZP",           do_section,   OpCodeFlag.PSEUDO, AsmDirective.P_ZP,      (int)SectionType.S_ZP),
+                        new NesAsmOpecode("BANK",         DoBank,           OpCodeFlag.PSEUDO, AsmDirective.P_BANK,    0),
+                        new NesAsmOpecode("BSS",          DoSection,        OpCodeFlag.PSEUDO, AsmDirective.P_BSS,     (int)SectionType.S_BSS),
+                        new NesAsmOpecode("BYTE",         DoDb,             OpCodeFlag.PSEUDO, AsmDirective.P_DB,      0),
+                        new NesAsmOpecode("CALL",         procPr.DoCall,    OpCodeFlag.PSEUDO, AsmDirective.P_CALL,    0),
+                        new NesAsmOpecode("CODE",         DoSection,        OpCodeFlag.PSEUDO, AsmDirective.P_CODE,    (int)SectionType.S_CODE),
+                        new NesAsmOpecode("DATA",         DoSection,        OpCodeFlag.PSEUDO, AsmDirective.P_DATA,    (int)SectionType.S_DATA),
+                        new NesAsmOpecode("DB",           DoDb,             OpCodeFlag.PSEUDO, AsmDirective.P_DB,      0),
+                        new NesAsmOpecode("DW",           DoDw,             OpCodeFlag.PSEUDO, AsmDirective.P_DW,      0),
+                        new NesAsmOpecode("DS",           DoDs,             OpCodeFlag.PSEUDO, AsmDirective.P_DS,      0),
+                        new NesAsmOpecode("ELSE",         asmPr.DoElse,     OpCodeFlag.PSEUDO, AsmDirective.P_ELSE,    0),
+                        new NesAsmOpecode("ENDIF",        asmPr.DoEndif,    OpCodeFlag.PSEUDO, AsmDirective.P_ENDIF,   0),
+                        new NesAsmOpecode("ENDM",         macroPr.Do_Endm,  OpCodeFlag.PSEUDO, AsmDirective.P_ENDM,    0),
+                        new NesAsmOpecode("ENDP",         procPr.DoEndp,    OpCodeFlag.PSEUDO, AsmDirective.P_ENDP,    (int)AsmDirective.P_PROC),
+                        new NesAsmOpecode("ENDPROCGROUP", procPr.DoEndp,    OpCodeFlag.PSEUDO, AsmDirective.P_ENDPG,   (int)AsmDirective.P_PGROUP),
+                        new NesAsmOpecode("EQU",          DoEqu,            OpCodeFlag.PSEUDO, AsmDirective.P_EQU,     0),
+                        new NesAsmOpecode("FAIL",         DoFail,           OpCodeFlag.PSEUDO, AsmDirective.P_FAIL,    0),
+                        new NesAsmOpecode("FUNC",         funcPr.DoFunc,    OpCodeFlag.PSEUDO, AsmDirective.P_FUNC,    0),
+                        new NesAsmOpecode("IF",           asmPr.DoIf,       OpCodeFlag.PSEUDO, AsmDirective.P_IF,      0),
+                        new NesAsmOpecode("IFDEF",        asmPr.DoIfdef,    OpCodeFlag.PSEUDO, AsmDirective.P_IFDEF,   1),
+                        new NesAsmOpecode("IFNDEF",       asmPr.DoIfdef,    OpCodeFlag.PSEUDO, AsmDirective.P_IFNDEF,  0),
+                        new NesAsmOpecode("INCBIN",       DoIncbin,         OpCodeFlag.PSEUDO, AsmDirective.P_INCBIN,  0),
+                        new NesAsmOpecode("INCLUDE",      DoInclude,        OpCodeFlag.PSEUDO, AsmDirective.P_INCLUDE, 0),
+                        new NesAsmOpecode("INCCHR",       DoIncchr,         OpCodeFlag.PSEUDO, AsmDirective.P_INCCHR,  0xEA),
+                        new NesAsmOpecode("LIST",         DoList,           OpCodeFlag.PSEUDO, AsmDirective.P_LIST,    0),
+                        new NesAsmOpecode("MAC",          macroPr.DoMacro,  OpCodeFlag.PSEUDO, AsmDirective.P_MACRO,   0),
+                        new NesAsmOpecode("MACRO",        macroPr.DoMacro,  OpCodeFlag.PSEUDO, AsmDirective.P_MACRO,   0),
+                        new NesAsmOpecode("MLIST",        DoMlist,          OpCodeFlag.PSEUDO, AsmDirective.P_MLIST,   0),
+                        new NesAsmOpecode("NOLIST",       DoNolist,         OpCodeFlag.PSEUDO, AsmDirective.P_NOLIST,  0),
+                        new NesAsmOpecode("NOMLIST",      DoNomlist,        OpCodeFlag.PSEUDO, AsmDirective.P_NOMLIST, 0),
+                        new NesAsmOpecode("OPT",          DoOpt,            OpCodeFlag.PSEUDO, AsmDirective.P_OPT,     0),
+                        new NesAsmOpecode("ORG",          DoOrg,            OpCodeFlag.PSEUDO, AsmDirective.P_ORG,     0),
+                        new NesAsmOpecode("PAGE",         DoPage,           OpCodeFlag.PSEUDO, AsmDirective.P_PAGE,    0),
+                        new NesAsmOpecode("PROC",         procPr.DoProc,    OpCodeFlag.PSEUDO, AsmDirective.P_PROC,    (int)AsmDirective.P_PROC),
+                        new NesAsmOpecode("PROCGROUP",    procPr.DoProc,    OpCodeFlag.PSEUDO, AsmDirective.P_PGROUP,  (int)AsmDirective.P_PGROUP),
+                        new NesAsmOpecode("RSSET",        DoRsset,          OpCodeFlag.PSEUDO, AsmDirective.P_RSSET,   0),
+                        new NesAsmOpecode("RS",           DoRs,             OpCodeFlag.PSEUDO, AsmDirective.P_RS,      0),
+                        new NesAsmOpecode("WORD",         DoDw,             OpCodeFlag.PSEUDO, AsmDirective.P_DW,      0),
+                        new NesAsmOpecode("ZP",           DoSection,        OpCodeFlag.PSEUDO, AsmDirective.P_ZP,      (int)SectionType.S_ZP),
 
-                        new NesAsmOpecode(null, ".BANK",         do_bank,      OpCodeFlag.PSEUDO, AsmDirective.P_BANK,    0),
-                        new NesAsmOpecode(null, ".BSS",          do_section,   OpCodeFlag.PSEUDO, AsmDirective.P_BSS,     (int)SectionType.S_BSS),
-                        new NesAsmOpecode(null, ".BYTE",         do_db,        OpCodeFlag.PSEUDO, AsmDirective.P_DB,      0),
-                        new NesAsmOpecode(null, ".CODE",         do_section,   OpCodeFlag.PSEUDO, AsmDirective.P_CODE,    (int)SectionType.S_CODE),
-                        new NesAsmOpecode(null, ".DATA",         do_section,   OpCodeFlag.PSEUDO, AsmDirective.P_DATA,    (int)SectionType.S_DATA),
-                        new NesAsmOpecode(null, ".DB",           do_db,        OpCodeFlag.PSEUDO, AsmDirective.P_DB,      0),
-                        new NesAsmOpecode(null, ".DW",           do_dw,        OpCodeFlag.PSEUDO, AsmDirective.P_DW,      0),
-                        new NesAsmOpecode(null, ".DS",           do_ds,        OpCodeFlag.PSEUDO, AsmDirective.P_DS,      0),
-                        new NesAsmOpecode(null, ".ELSE",         asmPr.DoElse,      OpCodeFlag.PSEUDO, AsmDirective.P_ELSE,    0),
-                        new NesAsmOpecode(null, ".ENDIF",        asmPr.DoEndif,     OpCodeFlag.PSEUDO, AsmDirective.P_ENDIF,   0),
-                        new NesAsmOpecode(null, ".ENDM",         macroPr.Do_Endm,      OpCodeFlag.PSEUDO, AsmDirective.P_ENDM,    0),
-                        new NesAsmOpecode(null, ".ENDP",         procPr.DoEndp,      OpCodeFlag.PSEUDO, AsmDirective.P_ENDP,    (int)AsmDirective.P_PROC),
-                        new NesAsmOpecode(null, ".ENDPROCGROUP", procPr.DoEndp,      OpCodeFlag.PSEUDO, AsmDirective.P_ENDPG,   (int)AsmDirective.P_PGROUP),
-                        new NesAsmOpecode(null, ".EQU",          do_equ,       OpCodeFlag.PSEUDO, AsmDirective.P_EQU,     0),
-                        new NesAsmOpecode(null, ".FAIL",         do_fail,      OpCodeFlag.PSEUDO, AsmDirective.P_FAIL,    0),
-                        new NesAsmOpecode(null, ".FUNC",         funcPr.DoFunc,      OpCodeFlag.PSEUDO, AsmDirective.P_FUNC,    0),
-                        new NesAsmOpecode(null, ".IF",           asmPr.DoIf,        OpCodeFlag.PSEUDO, AsmDirective.P_IF,      0),
-                        new NesAsmOpecode(null, ".IFDEF",        asmPr.DoIfdef,     OpCodeFlag.PSEUDO, AsmDirective.P_IFDEF,   1),
-                        new NesAsmOpecode(null, ".IFNDEF",       asmPr.DoIfdef,     OpCodeFlag.PSEUDO, AsmDirective.P_IFNDEF,  0),
-                        new NesAsmOpecode(null, ".INCBIN",       do_incbin,    OpCodeFlag.PSEUDO, AsmDirective.P_INCBIN,  0),
-                        new NesAsmOpecode(null, ".INCLUDE",      do_include,   OpCodeFlag.PSEUDO, AsmDirective.P_INCLUDE, 0),
-                        new NesAsmOpecode(null, ".INCCHR",       do_incchr,    OpCodeFlag.PSEUDO, AsmDirective.P_INCCHR,  0xEA),
-                        new NesAsmOpecode(null, ".LIST",         do_list,      OpCodeFlag.PSEUDO, AsmDirective.P_LIST,    0),
-                        new NesAsmOpecode(null, ".MAC",          macroPr.DoMacro,     OpCodeFlag.PSEUDO, AsmDirective.P_MACRO,   0),
-                        new NesAsmOpecode(null, ".MACRO",        macroPr.DoMacro,     OpCodeFlag.PSEUDO, AsmDirective.P_MACRO,   0),
-                        new NesAsmOpecode(null, ".MLIST",        do_mlist,     OpCodeFlag.PSEUDO, AsmDirective.P_MLIST,   0),
-                        new NesAsmOpecode(null, ".NOLIST",       do_nolist,    OpCodeFlag.PSEUDO, AsmDirective.P_NOLIST,  0),
-                        new NesAsmOpecode(null, ".NOMLIST",      do_nomlist,   OpCodeFlag.PSEUDO, AsmDirective.P_NOMLIST, 0),
-                        new NesAsmOpecode(null, ".OPT",          do_opt,       OpCodeFlag.PSEUDO, AsmDirective.P_OPT,     0),
-                        new NesAsmOpecode(null, ".ORG",          do_org,       OpCodeFlag.PSEUDO, AsmDirective.P_ORG,     0),
-                        new NesAsmOpecode(null, ".PAGE",         do_page,      OpCodeFlag.PSEUDO, AsmDirective.P_PAGE,    0),
-                        new NesAsmOpecode(null, ".PROC",         procPr.DoProc,      OpCodeFlag.PSEUDO, AsmDirective.P_PROC,    (int)AsmDirective.P_PROC),
-                        new NesAsmOpecode(null, ".PROCGROUP",    procPr.DoProc,      OpCodeFlag.PSEUDO, AsmDirective.P_PGROUP,  (int)AsmDirective.P_PGROUP),
-                        new NesAsmOpecode(null, ".RSSET",        do_rsset,     OpCodeFlag.PSEUDO, AsmDirective.P_RSSET,   0),
-                        new NesAsmOpecode(null, ".RS",           do_rs,        OpCodeFlag.PSEUDO, AsmDirective.P_RS,      0),
-                        new NesAsmOpecode(null, ".WORD",         do_dw,        OpCodeFlag.PSEUDO, AsmDirective.P_DW,      0),
-                        new NesAsmOpecode(null, ".ZP",           do_section,   OpCodeFlag.PSEUDO, AsmDirective.P_ZP,      (int)SectionType.S_ZP),
-                        new NesAsmOpecode(null, null,            null,         0,                 0,                      0)
+                        new NesAsmOpecode(".BANK",         DoBank,          OpCodeFlag.PSEUDO, AsmDirective.P_BANK,    0),
+                        new NesAsmOpecode(".BSS",          DoSection,       OpCodeFlag.PSEUDO, AsmDirective.P_BSS,     (int)SectionType.S_BSS),
+                        new NesAsmOpecode(".BYTE",         DoDb,            OpCodeFlag.PSEUDO, AsmDirective.P_DB,      0),
+                        new NesAsmOpecode(".CODE",         DoSection,       OpCodeFlag.PSEUDO, AsmDirective.P_CODE,    (int)SectionType.S_CODE),
+                        new NesAsmOpecode(".DATA",         DoSection,       OpCodeFlag.PSEUDO, AsmDirective.P_DATA,    (int)SectionType.S_DATA),
+                        new NesAsmOpecode(".DB",           DoDb,            OpCodeFlag.PSEUDO, AsmDirective.P_DB,      0),
+                        new NesAsmOpecode(".DW",           DoDw,            OpCodeFlag.PSEUDO, AsmDirective.P_DW,      0),
+                        new NesAsmOpecode(".DS",           DoDs,            OpCodeFlag.PSEUDO, AsmDirective.P_DS,      0),
+                        new NesAsmOpecode(".ELSE",         asmPr.DoElse,    OpCodeFlag.PSEUDO, AsmDirective.P_ELSE,    0),
+                        new NesAsmOpecode(".ENDIF",        asmPr.DoEndif,   OpCodeFlag.PSEUDO, AsmDirective.P_ENDIF,   0),
+                        new NesAsmOpecode(".ENDM",         macroPr.Do_Endm, OpCodeFlag.PSEUDO, AsmDirective.P_ENDM,    0),
+                        new NesAsmOpecode(".ENDP",         procPr.DoEndp,   OpCodeFlag.PSEUDO, AsmDirective.P_ENDP,    (int)AsmDirective.P_PROC),
+                        new NesAsmOpecode(".ENDPROCGROUP", procPr.DoEndp,   OpCodeFlag.PSEUDO, AsmDirective.P_ENDPG,   (int)AsmDirective.P_PGROUP),
+                        new NesAsmOpecode(".EQU",          DoEqu,           OpCodeFlag.PSEUDO, AsmDirective.P_EQU,     0),
+                        new NesAsmOpecode(".FAIL",         DoFail,          OpCodeFlag.PSEUDO, AsmDirective.P_FAIL,    0),
+                        new NesAsmOpecode(".FUNC",         funcPr.DoFunc,   OpCodeFlag.PSEUDO, AsmDirective.P_FUNC,    0),
+                        new NesAsmOpecode(".IF",           asmPr.DoIf,      OpCodeFlag.PSEUDO, AsmDirective.P_IF,      0),
+                        new NesAsmOpecode(".IFDEF",        asmPr.DoIfdef,   OpCodeFlag.PSEUDO, AsmDirective.P_IFDEF,   1),
+                        new NesAsmOpecode(".IFNDEF",       asmPr.DoIfdef,   OpCodeFlag.PSEUDO, AsmDirective.P_IFNDEF,  0),
+                        new NesAsmOpecode(".INCBIN",       DoIncbin,        OpCodeFlag.PSEUDO, AsmDirective.P_INCBIN,  0),
+                        new NesAsmOpecode(".INCLUDE",      DoInclude,       OpCodeFlag.PSEUDO, AsmDirective.P_INCLUDE, 0),
+                        new NesAsmOpecode(".INCCHR",       DoIncchr,        OpCodeFlag.PSEUDO, AsmDirective.P_INCCHR,  0xEA),
+                        new NesAsmOpecode(".LIST",         DoList,          OpCodeFlag.PSEUDO, AsmDirective.P_LIST,    0),
+                        new NesAsmOpecode(".MAC",          macroPr.DoMacro, OpCodeFlag.PSEUDO, AsmDirective.P_MACRO,   0),
+                        new NesAsmOpecode(".MACRO",        macroPr.DoMacro, OpCodeFlag.PSEUDO, AsmDirective.P_MACRO,   0),
+                        new NesAsmOpecode(".MLIST",        DoMlist,         OpCodeFlag.PSEUDO, AsmDirective.P_MLIST,   0),
+                        new NesAsmOpecode(".NOLIST",       DoNolist,        OpCodeFlag.PSEUDO, AsmDirective.P_NOLIST,  0),
+                        new NesAsmOpecode(".NOMLIST",      DoNomlist,       OpCodeFlag.PSEUDO, AsmDirective.P_NOMLIST, 0),
+                        new NesAsmOpecode(".OPT",          DoOpt,           OpCodeFlag.PSEUDO, AsmDirective.P_OPT,     0),
+                        new NesAsmOpecode(".ORG",          DoOrg,           OpCodeFlag.PSEUDO, AsmDirective.P_ORG,     0),
+                        new NesAsmOpecode(".PAGE",         DoPage,          OpCodeFlag.PSEUDO, AsmDirective.P_PAGE,    0),
+                        new NesAsmOpecode(".PROC",         procPr.DoProc,   OpCodeFlag.PSEUDO, AsmDirective.P_PROC,    (int)AsmDirective.P_PROC),
+                        new NesAsmOpecode(".PROCGROUP",    procPr.DoProc,   OpCodeFlag.PSEUDO, AsmDirective.P_PGROUP,  (int)AsmDirective.P_PGROUP),
+                        new NesAsmOpecode(".RSSET",        DoRsset,         OpCodeFlag.PSEUDO, AsmDirective.P_RSSET,   0),
+                        new NesAsmOpecode(".RS",           DoRs,            OpCodeFlag.PSEUDO, AsmDirective.P_RS,      0),
+                        new NesAsmOpecode(".WORD",         DoDw,            OpCodeFlag.PSEUDO, AsmDirective.P_DW,      0),
+                        new NesAsmOpecode(".ZP",           DoSection,       OpCodeFlag.PSEUDO, AsmDirective.P_ZP,      (int)SectionType.S_ZP)
                     };
                 }
                 return basePseudo;
