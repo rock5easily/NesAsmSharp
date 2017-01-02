@@ -52,6 +52,10 @@ namespace NesAsmSharp.Assembler
         public char[] PrLnBuf { get; private set; } // input line buffer
         public char[] TmpLnBuf { get; private set; } // temporary line buffer
         /// <summary>
+        /// バンク跨ぎ設定フラグ
+        /// </summary>
+        public bool[] BankCat { get; private set; } // cat bank flag
+        /// <summary>
         /// 現在読んでいるソースの読んだ行数
         /// </summary>
         public int SrcLineNum { get; set; } // source line number counter
@@ -159,6 +163,7 @@ namespace NesAsmSharp.Assembler
             PrLnBuf = new char[Definition.LAST_CH_POS + 4];
             TmpLnBuf = new char[Definition.LAST_CH_POS + 4];
             Symbol = new char[Definition.SBOLSZ + 1];
+            BankCat = new bool[Definition.BANK_NUM_MAX];
 
             // macro.c
             MacroArg = new char[8, 10][];

@@ -240,7 +240,14 @@ namespace NesAsmSharp.Assembler
                     {
                         if (ctx.ProcPtr == null)
                         {
-                            outPr.FatalError("Bank overflow, offset > $1FFF!");
+                            if (ctx.BankCat[ctx.LocCnt / 0x2000 + ctx.Bank - 1])
+                            {
+                                continue;
+                            }
+                            else
+                            {
+                                outPr.FatalError("Bank overflow, offset > $1FFF!");
+                            }
                         }
                         else
                         {
