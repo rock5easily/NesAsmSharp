@@ -7,33 +7,8 @@ using System.Text;
 namespace NesAsmSharp.Tests
 {
     [TestClass]
-    public class CatbankTest
+    public class CatbankTest : TestBase
     {
-        public string TestDataDirectory;
-
-        public CatbankTest()
-        {
-            TestDataDirectory = Path.GetFullPath(Environment.CurrentDirectory + "\\..\\..\\TestData");
-        }
-
-        public string CaptureConsole(Action f)
-        {
-            var sb = new StringBuilder();
-            var writer = new StringWriter(sb);
-
-            var stdOut = Console.Out;
-            Console.SetOut(writer);
-
-            f();
-
-            Console.SetOut(stdOut);
-            writer.Close();
-            var msg = sb.ToString();
-            Console.Out.Write(msg);
-
-            return msg;
-        }
-
         [TestMethod]
         public void No_Catbank()
         {

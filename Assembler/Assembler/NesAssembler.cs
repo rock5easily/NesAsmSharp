@@ -298,6 +298,31 @@ namespace NesAsmSharp.Assembler
                 /* rewind input file */
                 ctx.InFp.BaseStream.Seek(0, SeekOrigin.Begin);
 
+                // check regions
+                if (pass == PassFlag.FIRST_PASS)
+                {
+                    if (ctx.RegionTbl.Count > 0)
+                    {
+                        opt.StdOut.WriteLine("==================== Region Info ====================");
+                        foreach (var r in ctx.RegionTbl.Values)
+                        {
+                            if (r.BeginBank < 0 || r.BeginLocCnt < 0)
+                            {
+                                opt.StdOut.WriteLine("Region {0,-12}: BEGINREGION not found", r.Name);
+                            }
+                            else if (r.EndBank < 0 || r.EndLocCnt < 0)
+                            {
+                                opt.StdOut.WriteLine("Region {0,-12}: ENDREGION not found", r.Name);
+                            }
+                            else
+                            {
+                                opt.StdOut.WriteLine("Region {0,-12}: {1,8} bytes (0x{1:X6} bytes)", r.Name, r.RegionSize);
+                            }
+                        }
+                        opt.StdOut.WriteLine("=====================================================");
+                    }
+                }
+
                 /* open the listing file */
                 if (pass == PassFlag.FIRST_PASS)
                 {

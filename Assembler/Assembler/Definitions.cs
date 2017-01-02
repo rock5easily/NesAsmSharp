@@ -65,12 +65,15 @@ namespace NesAsmSharp.Assembler
         /// BANK_SIZE = 8192
         /// </summary>
         public static readonly int BANK_SIZE = 0x2000;
-
         /// <summary>
         /// インクルードパスの最大数
         /// INC_PATH_MAX = 10
         /// </summary>
         public static readonly int INC_PATH_MAX = 10;
+        /// <summary>
+        /// リージョン名の最大文字数
+        /// </summary>
+        public static readonly int REGION_NAME_MAX = 64;
 
         /// <summary>
         /// セクション名
@@ -171,6 +174,8 @@ namespace NesAsmSharp.Assembler
         P_CALL = 49, // .call
         P_AUTOZP = 50, // .autozp
         P_CATBANK = 51, // .catbank
+        P_BEGINREGION = 52, // .beginregion
+        P_ENDREGION = 53, // .endregion
     }
 
     /* symbol flags */
@@ -399,6 +404,29 @@ namespace NesAsmSharp.Assembler
         public uint Crc { get; set; }
         public int Index { get; set; }
     }
+
+    public class NesAsmRegion
+    {
+        public int BeginBank { get; set; }
+        public int EndBank { get; set; }
+        public int BeginLocCnt { get; set; }
+        public int EndLocCnt { get; set; }
+        public string Name { get; set; }
+        public int RegionSize
+        {
+            get
+            {
+                return (EndBank * Definition.BANK_SIZE + EndLocCnt) - (BeginBank * Definition.BANK_SIZE + BeginLocCnt);
+            }
+        }
+
+        public NesAsmRegion()
+        {
+            BeginBank = EndBank = -1;
+            BeginLocCnt = EndLocCnt = -1;
+        }
+    }
+
 
     public class NesAsmMachine
     {
