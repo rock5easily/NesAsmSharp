@@ -13,6 +13,24 @@ namespace NesAsmSharp.Assembler
     {
         private NesAsmContext ctx;
         private NesAsmOption opt;
+        /// <summary>
+        /// Assemble()の結果が成功しているかを返す
+        /// </summary>
+        public bool AssembleSuccess { get; private set; }
+        /// <summary>
+        /// Assemble()を実行済みかを返す
+        /// </summary>
+        public bool Executed { get; private set; }
+        /// <summary>
+        /// アセンブル結果のbyte配列
+        /// </summary>
+        public byte[] ResultBinary
+        {
+            get
+            {
+                return GetResultBinary();
+            }
+        }
 
         public NesAsmContext Context
         {
@@ -37,6 +55,7 @@ namespace NesAsmSharp.Assembler
             ctx.Option = opt;
             var nesPr = ctx.GetProcessor<NesMachineProcessor>();
             ctx.Machine = nesPr.NesMachine;
+            Executed = false;
         }
 
         /// <summary>
@@ -45,6 +64,14 @@ namespace NesAsmSharp.Assembler
         /// <returns>0 - success</returns>
         public int Assemble()
         {
+            if (Executed)
+            {
+                throw new InvalidOperationException("Assemble() already executed!");
+            }
+
+            AssembleSuccess = false;
+            Executed = true;
+
             var result = 0;
 
             result = Prepare();
@@ -53,7 +80,15 @@ namespace NesAsmSharp.Assembler
             result = RunPass();
             if (result == 0)
             {
-                result = Output();
+                if (opt.OutputBinDisabled)
+                {
+                    AssembleSuccess = true;
+                }
+                else
+                {
+                    result = Output();
+                    AssembleSuccess = result == 0 ? true : false;
+                }
             }
 
             Cleanup();
@@ -131,7 +166,7 @@ namespace NesAsmSharp.Assembler
             return 0;
         }
 
-        public int RunPass()
+        private int RunPass()
         {
             var inPr = ctx.GetProcessor<InputProcessor>();
             var outPr = ctx.GetProcessor<OutputProcessor>();
@@ -263,7 +298,18 @@ namespace NesAsmSharp.Assembler
                     {
                         try
                         {
-                            ctx.LstFp = new StreamWriter(opt.LstFName, false, opt.Encoding);
+                            if (opt.OutputLstDisabled)
+                            {
+                                ctx.LstFp = StreamWriter.Null;
+                            }
+                            else if (opt.LstStreamWriter != null)
+                            {
+                                ctx.LstFp = opt.LstStreamWriter;
+                            }
+                            else
+                            {
+                                ctx.LstFp = new StreamWriter(opt.LstFName, false, opt.Encoding);
+                            }
                         }
                         catch (Exception e)
                         {
@@ -460,15 +506,40 @@ namespace NesAsmSharp.Assembler
             return 0;
         }
 
+        /// <summary>
+        /// アセンブル結果のバイナリをbyte配列で返す
+        /// NESヘッダは付加されない
+        /// </summary>
+        /// <returns></returns>
+        private byte[] GetResultBinary()
+        {
+            if (!AssembleSuccess) return null;
+            var rom = ctx.Rom.ToByteArray();
+
+            var len = 8192 * (ctx.MaxBank + 1);
+            var result = new byte[len];
+            Array.Copy(rom, 0, result, 0, len);
+            return result;
+        }
+
         private void Cleanup()
         {
             /* close listing file */
-            ctx.LstFp?.Close();
-            ctx.LstFp = null;
+            if (ctx.LstFp != null)
+            {
+                if (!ctx.LstFp.Equals(StreamWriter.Null) && !ctx.LstFp.Equals(opt.LstStreamWriter))
+                {
+                    ctx.LstFp.Close();
+                }
+                ctx.LstFp = null;
+            }
 
             /* close input file */
-            ctx.InFp?.Close();
-            ctx.InFp = null;
+            if (ctx.InFp != null)
+            {
+                ctx.InFp.Close();
+                ctx.InFp = null;
+            }
 
             /* dump the bank table */
             if (opt.DumpSeg > 0)

@@ -50,6 +50,19 @@ namespace NesAsmSharp.Assembler
         /// </summary>
         public TextWriter StdErr { get; set; }
 
+        /// <summary>
+        /// バイナリファイル出力を行わない(テスト用オプション)
+        /// </summary>
+        public bool OutputBinDisabled { get; set; }
+        /// <summary>
+        /// リストファイル出力を行わない(テスト用オプション)
+        /// </summary>
+        public bool OutputLstDisabled { get; set; }
+        /// <summary>
+        /// リスト出力用のStreamWriterを明示的に指定する場合に設定(テスト用オプション)
+        /// </summary>
+        public StreamWriter LstStreamWriter { get; set; }
+
         public NesAsmOption()
         {
             AsmOpt = new Dictionary<AssemblerOption, bool>();
