@@ -23,7 +23,7 @@ namespace NesAsmSharp.Assembler.Processors
             0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0C,
             0x0F, 0x0F, 0x0F, 0x0C, 0x0C, 0x0C, 0x0C, 0x0F, 0x0F, 0x0F,
             0x0F, 0x0F, 0x0C, 0x0C, 0x0C, 0x04, 0x04, 0x04, 0x04, 0x04,
-            0x0F
+            0x0F, 0x0F
         };
 
         public CommandProcessor(NesAsmContext ctx) : base(ctx)
@@ -1244,6 +1244,29 @@ namespace NesAsmSharp.Assembler.Processors
         }
 
         /// <summary>
+        /// .catbank pseudo
+        /// バンク跨ぎフラグを設定
+        /// </summary>
+        /// <param name="ip"></param>
+        public void DoCatbank(ref int ip)
+        {
+            if (exprPr.Evaluate(ref ip, '\0') == 0)
+            {
+                outPr.Error("CATBANK:Failure!(param)");
+                return;
+            }
+
+            var bank = (int)ctx.Value;
+            if (bank < 0 || bank >= Definition.BANK_NUM_MAX)
+            {
+                outPr.Error("CATBANK:Failure!(0<=param<=127)");
+                return;
+            }
+            ctx.BankCat[bank] = true;
+        }
+
+
+        /// <summary>
         /// hex-style string to int
         /// </summary>
         /// <param name="str"></param>
@@ -1330,6 +1353,7 @@ namespace NesAsmSharp.Assembler.Processors
                         new NesAsmOpecode("RS",           DoRs,             OpCodeFlag.PSEUDO, AsmDirective.P_RS,      0),
                         new NesAsmOpecode("WORD",         DoDw,             OpCodeFlag.PSEUDO, AsmDirective.P_DW,      0),
                         new NesAsmOpecode("ZP",           DoSection,        OpCodeFlag.PSEUDO, AsmDirective.P_ZP,      (int)SectionType.S_ZP),
+                        new NesAsmOpecode("CATBANK",      DoCatbank,        OpCodeFlag.PSEUDO, AsmDirective.P_CATBANK, 0),
 
                         new NesAsmOpecode(".BANK",         DoBank,          OpCodeFlag.PSEUDO, AsmDirective.P_BANK,    0),
                         new NesAsmOpecode(".BSS",          DoSection,       OpCodeFlag.PSEUDO, AsmDirective.P_BSS,     (int)SectionType.S_BSS),
@@ -1367,7 +1391,8 @@ namespace NesAsmSharp.Assembler.Processors
                         new NesAsmOpecode(".RSSET",        DoRsset,         OpCodeFlag.PSEUDO, AsmDirective.P_RSSET,   0),
                         new NesAsmOpecode(".RS",           DoRs,            OpCodeFlag.PSEUDO, AsmDirective.P_RS,      0),
                         new NesAsmOpecode(".WORD",         DoDw,            OpCodeFlag.PSEUDO, AsmDirective.P_DW,      0),
-                        new NesAsmOpecode(".ZP",           DoSection,       OpCodeFlag.PSEUDO, AsmDirective.P_ZP,      (int)SectionType.S_ZP)
+                        new NesAsmOpecode(".ZP",           DoSection,       OpCodeFlag.PSEUDO, AsmDirective.P_ZP,      (int)SectionType.S_ZP),
+                        new NesAsmOpecode(".CATBANK",      DoCatbank,       OpCodeFlag.PSEUDO, AsmDirective.P_CATBANK, 0),
                     };
                 }
                 return basePseudo;

@@ -161,6 +161,24 @@ namespace NesAsmSharp.Assembler.Processors
                     ctx.MaxBank = ctx.Bank;
                 }
             }
+            else
+            {
+                var newBank = ctx.Bank + offset / 0x2000;
+                var newOffset = offset % 0x2000;
+                if (newBank >= Definition.RESERVED_BANK)
+                {
+                    outPr.FatalError("ROM overflow!(PutOverBank)");
+                    return;
+                }
+                ctx.Rom[newBank, newOffset] = (byte)((data) & 0xFF);
+                ctx.Map[newBank, newOffset] = (byte)(ctx.Section + (ctx.Page << 5));
+
+                /* update rom size */
+                if (newBank > ctx.MaxBank)
+                {
+                    ctx.MaxBank = newBank;
+                }
+            }
         }
 
         /// <summary>
@@ -187,6 +205,11 @@ namespace NesAsmSharp.Assembler.Processors
                 {
                     ctx.MaxBank = ctx.Bank;
                 }
+            }
+            else
+            {
+                PutByte(offset, (data) & 0xFF);
+                PutByte(offset + 1, (data >> 8) & 0xFF);
             }
         }
 

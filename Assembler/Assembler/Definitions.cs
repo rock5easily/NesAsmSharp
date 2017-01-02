@@ -170,6 +170,7 @@ namespace NesAsmSharp.Assembler
         P_ENDPG = 48, // .endprocgroup
         P_CALL = 49, // .call
         P_AUTOZP = 50, // .autozp
+        P_CATBANK = 51, // .catbank
     }
 
     /* symbol flags */
