@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NesAsmSharp.Assembler.Processors;
+using System.IO;
 
 namespace NesAsmSharp.Assembler
 {
@@ -50,24 +51,26 @@ namespace NesAsmSharp.Assembler
         public PassFlag Pass { get; set; } // pass counter
         public char[] PrLnBuf { get; private set; } // input line buffer
         public char[] TmpLnBuf { get; private set; } // temporary line buffer
-        public int SLNum { get; set; } // source line number counter
+        /// <summary>
+        /// 現在読んでいるソースの読んだ行数
+        /// </summary>
+        public int SrcLineNum { get; set; } // source line number counter
         public char[] Symbol { get; private set; } // temporary symbol storage
         public int Undef { get; set; } // undefined symbol in expression flg
         public uint Value { get; set; } // operand field value
 
         // macro.c
-        public int MOpt { get; set; }
         public bool InMacro { get; set; }
         public bool IsExpandMacro { get; set; }
-        public char[,][] MArg { get; private set; }
-        public int MIdx { get; set; }
-        public int MCounter { get; set; }
-        public int MCntMax { get; set; }
-        public Stack<int> MCntStack { get; private set; }
-        public Stack<NesAsmLine> MStack { get; private set; }
-        public NesAsmLine MLPtr { get; set; }
+        public char[,][] MacroArg { get; private set; }
+        public int MacroIdx { get; set; }
+        public int MacroCounter { get; set; }
+        public int MacroCntMax { get; set; }
+        public Stack<int> MacroCntStack { get; private set; }
+        public Stack<NesAsmLine> MacroStack { get; private set; }
+        public NesAsmLine MacroLinePtr { get; set; }
         public Dictionary<string, NesAsmMacro> MacroTbl { get; private set; }
-        public NesAsmMacro MPtr { get; set; }
+        public NesAsmMacro MacroPtr { get; set; }
 
         // assemble.c
         public bool InIf { get; set; } // set when we are in an .if statement
@@ -107,6 +110,14 @@ namespace NesAsmSharp.Assembler
         public int InFileError { get; set; }
         public int InFileNum { get; set; }
         public NesAsmInputInfo[] InputFile { get; private set; }
+        /// <summary>
+        /// 現在のソース読み込み用StreamReaderオブジェクト
+        /// </summary>
+        public StreamReader InFp { get; set; } // file pointers, input
+        /// <summary>
+        /// .lstファイル書き込み用StreamWriterオブジェクト
+        /// </summary>
+        public StreamWriter LstFp { get; set; } // listing
         public string[] IncPath { get; private set; }
 
         // code.c
@@ -150,16 +161,16 @@ namespace NesAsmSharp.Assembler
             Symbol = new char[Definition.SBOLSZ + 1];
 
             // macro.c
-            MArg = new char[8, 10][];
+            MacroArg = new char[8, 10][];
             for (var i = 0; i < 8; i++)
             {
                 for (var j = 0; j < 10; j++)
                 {
-                    MArg[i, j] = new char[Definition.MACRO_ARG_MAX_LEN + 1];
+                    MacroArg[i, j] = new char[Definition.MACRO_ARG_MAX_LEN + 1];
                 }
             }
-            MCntStack = new Stack<int>();
-            MStack = new Stack<NesAsmLine>();
+            MacroCntStack = new Stack<int>();
+            MacroStack = new Stack<NesAsmLine>();
             MacroTbl = new Dictionary<string, NesAsmMacro>();
 
             // assemble.c

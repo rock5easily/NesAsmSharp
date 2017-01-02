@@ -16,8 +16,6 @@ namespace NesAsmSharp.Assembler
         public string LstFName { get; set; } // listing
         public string PrgName { get; set; } // program name
         public Encoding Encoding { get; set; } // source file text encoding
-        public StreamReader InFp { get; set; } // file pointers, input
-        public StreamWriter LstFp { get; set; } // listing
         public int DumpSeg { get; set; }
         /// <summary>
         /// Develo option (PCE only)

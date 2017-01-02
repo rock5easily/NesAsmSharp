@@ -113,22 +113,22 @@ namespace NesAsmSharp.Assembler.Processors
             int level;
 
             /* can not nest too much macros */
-            if (ctx.MIdx == 7)
+            if (ctx.MacroIdx == 7)
             {
                 outPr.Error("Too many nested macro calls!");
                 return (0);
             }
 
             /* initialize args */
-            ctx.MCntStack.Push(ctx.MCounter);
-            ctx.MStack.Push(ctx.MLPtr);
-            ctx.MIdx++;
-            var ptr = new ArrayPointer<char>(ctx.MArg[ctx.MIdx, 0]);
+            ctx.MacroCntStack.Push(ctx.MacroCounter);
+            ctx.MacroStack.Push(ctx.MacroLinePtr);
+            ctx.MacroIdx++;
+            var ptr = new ArrayPointer<char>(ctx.MacroArg[ctx.MacroIdx, 0]);
             arg = 0;
 
             for (i = 0; i < 9; i++)
             {
-                ctx.MArg[ctx.MIdx, i][0] = '\0';
+                ctx.MacroArg[ctx.MacroIdx, i][0] = '\0';
             }
 
             /* extract args */
@@ -143,7 +143,7 @@ namespace NesAsmSharp.Assembler.Processors
                 /* no arg */
                 case ',':
                     arg++;
-                    ptr = new ArrayPointer<char>(ctx.MArg[ctx.MIdx, arg]);
+                    ptr = new ArrayPointer<char>(ctx.MacroArg[ctx.MacroIdx, arg]);
                     if (arg == 9)
                     {
                         outPr.Error("Too many arguments for a macro!");
@@ -291,7 +291,7 @@ namespace NesAsmSharp.Assembler.Processors
                             if (str == "x++" || str == "y++" || str.Length == 1)
                             {
                                 arg--;
-                                ptr = new ArrayPointer<char>(ctx.MArg[ctx.MIdx, arg]);
+                                ptr = new ArrayPointer<char>(ctx.MacroArg[ctx.MacroIdx, arg]);
 
                                 /* check string length */
                                 if (ptr.GetLengthAsNullTerminated() > 75)
@@ -302,8 +302,8 @@ namespace NesAsmSharp.Assembler.Processors
 
                                 /* attach current arg to the previous one */
                                 ptr.AppendAsNullTerminated(",");
-                                ptr.AppendAsNullTerminated(ctx.MArg[ctx.MIdx, arg + 1]);
-                                ptr = new ArrayPointer<char>(ctx.MArg[ctx.MIdx, arg + 1]);
+                                ptr.AppendAsNullTerminated(ctx.MacroArg[ctx.MacroIdx, arg + 1]);
+                                ptr = new ArrayPointer<char>(ctx.MacroArg[ctx.MacroIdx, arg + 1]);
                                 ptr[0] = '\0';
                             }
                         }
@@ -334,8 +334,8 @@ namespace NesAsmSharp.Assembler.Processors
             /* initialize it */
             mptr.Name = symstr;
             ctx.MacroTbl[symstr] = mptr;
-            ctx.MPtr = mptr;
-            ctx.MLPtr = null;
+            ctx.MacroPtr = mptr;
+            ctx.MacroLinePtr = null;
 
             /* ok */
             return 1;

@@ -67,15 +67,15 @@ namespace NesAsmSharp.Assembler.Processors
                     ptr = new NesAsmLine();
                     ptr.Next = null;
                     ptr.Data = ctx.PrLnBuf.ToStringFromNullTerminated(Definition.SFIELD);
-                    if (ctx.MLPtr != null)
+                    if (ctx.MacroLinePtr != null)
                     {
-                        ctx.MLPtr.Next = ptr;
+                        ctx.MacroLinePtr.Next = ptr;
                     }
                     else
                     {
-                        ctx.MPtr.Line = ptr;
+                        ctx.MacroPtr.Line = ptr;
                     }
-                    ctx.MLPtr = ptr;
+                    ctx.MacroLinePtr = ptr;
                 }
                 return;
             }
@@ -176,8 +176,8 @@ namespace NesAsmSharp.Assembler.Processors
 
             /* is it a macro? */
             ip = i;
-            ctx.MPtr = macroPr.MacroLook(ref ip);
-            if (ctx.MPtr != null)
+            ctx.MacroPtr = macroPr.MacroLook(ref ip);
+            if (ctx.MacroPtr != null)
             {
                 /* define label */
                 symPr.LablDef(ctx.LocCnt, 1);
@@ -201,10 +201,10 @@ namespace NesAsmSharp.Assembler.Processors
                 }
 
                 /* ok */
-                ctx.MCntMax++;
-                ctx.MCounter = ctx.MCntMax;
+                ctx.MacroCntMax++;
+                ctx.MacroCounter = ctx.MacroCntMax;
                 ctx.IsExpandMacro = true;
-                ctx.MLPtr = ctx.MPtr.Line;
+                ctx.MacroLinePtr = ctx.MacroPtr.Line;
                 return;
             }
 

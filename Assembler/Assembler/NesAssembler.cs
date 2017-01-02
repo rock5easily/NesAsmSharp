@@ -150,9 +150,9 @@ namespace NesAsmSharp.Assembler
                 ctx.Page = 7;
                 ctx.Bank = 0;
                 ctx.LocCnt = 0;
-                ctx.SLNum = 0;
-                ctx.MCounter = 0;
-                ctx.MCntMax = 0;
+                ctx.SrcLineNum = 0;
+                ctx.MacroCounter = 0;
+                ctx.MacroCntMax = 0;
                 opt.XListOpt = false;
                 ctx.GLablPtr = null;
                 ctx.SkipLines = false;
@@ -254,7 +254,7 @@ namespace NesAsmSharp.Assembler
                 }
 
                 /* rewind input file */
-                opt.InFp.BaseStream.Seek(0, SeekOrigin.Begin);
+                ctx.InFp.BaseStream.Seek(0, SeekOrigin.Begin);
 
                 /* open the listing file */
                 if (pass == PassFlag.FIRST_PASS)
@@ -263,14 +263,14 @@ namespace NesAsmSharp.Assembler
                     {
                         try
                         {
-                            opt.LstFp = new StreamWriter(opt.LstFName, false, opt.Encoding);
+                            ctx.LstFp = new StreamWriter(opt.LstFName, false, opt.Encoding);
                         }
                         catch (Exception e)
                         {
                             opt.StdOut.WriteLine("Can not open listing file '{0}'!", opt.LstFName);
                             Environment.Exit(1);
                         }
-                        opt.LstFp.WriteLine("#[1]   {0}", ctx.InputFile[1].Name);
+                        ctx.LstFp.WriteLine("#[1]   {0}", ctx.InputFile[1].Name);
                     }
                 }
             }
@@ -463,12 +463,12 @@ namespace NesAsmSharp.Assembler
         private void Cleanup()
         {
             /* close listing file */
-            opt.LstFp?.Close();
-            opt.LstFp = null;
+            ctx.LstFp?.Close();
+            ctx.LstFp = null;
 
             /* close input file */
-            opt.InFp?.Close();
-            opt.InFp = null;
+            ctx.InFp?.Close();
+            ctx.InFp = null;
 
             /* dump the bank table */
             if (opt.DumpSeg > 0)

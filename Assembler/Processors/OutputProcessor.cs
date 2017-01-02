@@ -40,7 +40,7 @@ namespace NesAsmSharp.Assembler.Processors
             {
                 /* line buffer */
                 str = ctx.PrLnBuf.ToStringFromNullTerminated();
-                opt.LstFp.WriteLine(str);
+                ctx.LstFp.WriteLine(str);
             }
             else
             {
@@ -55,7 +55,7 @@ namespace NesAsmSharp.Assembler.Processors
                 {
                     /* doesn't match */
                     str = ctx.PrLnBuf.ToStringFromNullTerminated();
-                    opt.LstFp.WriteLine(str);
+                    ctx.LstFp.WriteLine(str);
                 }
                 else
                 {
@@ -80,7 +80,7 @@ namespace NesAsmSharp.Assembler.Processors
                         {
                             cnt = 0;
                             str = ctx.PrLnBuf.ToStringFromNullTerminated();
-                            opt.LstFp.WriteLine(str);
+                            ctx.LstFp.WriteLine(str);
                             ClearLn();
                             LoadLc(ctx.DataLocCnt, 0);
                         }
@@ -88,7 +88,7 @@ namespace NesAsmSharp.Assembler.Processors
                     if (cnt != 0)
                     {
                         str = ctx.PrLnBuf.ToStringFromNullTerminated();
-                        opt.LstFp.WriteLine(str);
+                        ctx.LstFp.WriteLine(str);
                     }
                 }
             }
@@ -423,7 +423,7 @@ namespace NesAsmSharp.Assembler.Processors
 
             /* put the source line number into prlnbuf */
             i = 4;
-            temp = ctx.SLNum;
+            temp = ctx.SrcLineNum;
             while (temp != 0)
             {
                 ctx.PrLnBuf[i--] = (char)(temp % 10 + '0');

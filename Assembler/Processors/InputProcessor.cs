@@ -61,16 +61,16 @@ namespace NesAsmSharp.Assembler.Processors
             /* if 'expand_macro' is set get a line from macro buffer instead */
             if (ctx.IsExpandMacro)
             {
-                if (ctx.MLPtr == null)
+                if (ctx.MacroLinePtr == null)
                 {
-                    while (ctx.MLPtr == null)
+                    while (ctx.MacroLinePtr == null)
                     {
-                        ctx.MIdx--;
-                        ctx.MLPtr = ctx.MStack.Pop();
-                        ctx.MCounter = ctx.MCntStack.Pop();
-                        if (ctx.MIdx == 0)
+                        ctx.MacroIdx--;
+                        ctx.MacroLinePtr = ctx.MacroStack.Pop();
+                        ctx.MacroCounter = ctx.MacroCntStack.Pop();
+                        if (ctx.MacroIdx == 0)
                         {
-                            ctx.MLPtr = null;
+                            ctx.MacroLinePtr = null;
                             ctx.IsExpandMacro = false;
                             break;
                         }
@@ -78,10 +78,10 @@ namespace NesAsmSharp.Assembler.Processors
                 }
 
                 /* expand line */
-                if (ctx.MLPtr != null)
+                if (ctx.MacroLinePtr != null)
                 {
                     i = Definition.SFIELD;
-                    var data = ctx.MLPtr.Data.ToNullTerminatedCharArray();
+                    var data = ctx.MacroLinePtr.Data.ToNullTerminatedCharArray();
                     data_ptr = 0;
                     for (;;)
                     {
@@ -100,14 +100,14 @@ namespace NesAsmSharp.Assembler.Processors
                             if (c == '@')
                             {
                                 n = 5;
-                                arg = ctx.MCounter.ToString("D5");
+                                arg = ctx.MacroCounter.ToString("D5");
                             }
                             /* \# */
                             else if (c == '#')
                             {
                                 for (j = 9; j > 0; j--)
                                 {
-                                    if ((ctx.MArg[ctx.MIdx, j - 1][0] == 0)) break;
+                                    if ((ctx.MacroArg[ctx.MacroIdx, j - 1][0] == 0)) break;
                                 }
                                 n = 1;
                                 arg = j.ToString();
@@ -120,7 +120,7 @@ namespace NesAsmSharp.Assembler.Processors
                                 if (c >= '1' && c <= '9')
                                 {
                                     n = 1;
-                                    num = ((int)macroPr.MacroGetArgType(ctx.MArg[ctx.MIdx, c - '1'].ToStringFromNullTerminated())).ToString();
+                                    num = ((int)macroPr.MacroGetArgType(ctx.MacroArg[ctx.MacroIdx, c - '1'].ToStringFromNullTerminated())).ToString();
                                     arg = num;
                                 }
                                 else
@@ -134,7 +134,7 @@ namespace NesAsmSharp.Assembler.Processors
                             else if (c >= '1' && c <= '9')
                             {
                                 j = c - '1';
-                                arg = ctx.MArg[ctx.MIdx, j].ToStringFromNullTerminated();
+                                arg = ctx.MacroArg[ctx.MacroIdx, j].ToStringFromNullTerminated();
                                 n = arg.Length;
                             }
 
@@ -165,14 +165,14 @@ namespace NesAsmSharp.Assembler.Processors
                         }
                     }
                     ctx.PrLnBuf[i] = '\0';
-                    ctx.MLPtr = ctx.MLPtr.Next;
+                    ctx.MacroLinePtr = ctx.MacroLinePtr.Next;
                     return 0;
                 }
             }
 
             /* put source line number into prlnbuf */
             i = 4;
-            temp = ++ctx.SLNum;
+            temp = ++ctx.SrcLineNum;
             while (temp != 0)
             {
                 ctx.PrLnBuf[i--] = (char)(temp % 10 + '0');
@@ -182,7 +182,7 @@ namespace NesAsmSharp.Assembler.Processors
             /* get a line */
             i = Definition.SFIELD;
 
-            c = opt.InFp.Read();
+            c = ctx.InFp.Read();
             if (c == -1)
             {
                 if (CloseInputFile() != 0) return (-1);
@@ -193,10 +193,10 @@ namespace NesAsmSharp.Assembler.Processors
                 /* check for the end of line */
                 if (c == '\r')
                 {
-                    c = opt.InFp.Peek();
+                    c = ctx.InFp.Peek();
                     if (c == '\n' || c == -1)
                     {
-                        opt.InFp.Read();
+                        ctx.InFp.Read();
                         break;
                     }
                     break;
@@ -215,7 +215,7 @@ namespace NesAsmSharp.Assembler.Processors
                 }
 
                 /* get next char */
-                c = opt.InFp.Read();
+                c = ctx.InFp.Read();
             }
             ctx.PrLnBuf[i] = '\0';
             return 0;
@@ -229,37 +229,27 @@ namespace NesAsmSharp.Assembler.Processors
         public int OpenInputFile(string name)
         {
             StreamReader sr;
-            int p;
             int i;
 
             /* only 7 nested input files */
-            if (ctx.InFileNum == 7)
+            var inFileNumMax = ctx.InputFile.Length - 1;
+            if (ctx.InFileNum == inFileNumMax)
             {
-                outPr.Error("Too many include levels, max. 7!");
+                outPr.Error($"Too many include levels, max. {inFileNumMax}!");
                 return 1;
             }
 
             /* backup current input file infos */
             if (ctx.InFileNum != 0)
             {
-                ctx.InputFile[ctx.InFileNum].LNum = ctx.SLNum;
-                ctx.InputFile[ctx.InFileNum].Fp = opt.InFp;
+                ctx.InputFile[ctx.InFileNum].LineNum = ctx.SrcLineNum;
+                ctx.InputFile[ctx.InFileNum].Fp = ctx.InFp;
             }
-
-            /* get a copy of the file name */
-            var temp = name;
 
             /* auto add the .asm file extension */
-            if ((p = temp.LastIndexOf('.')) >= 0)
+            if (Path.GetExtension(name).ToLower() != ".asm")
             {
-                if (temp.IndexOf(Path.DirectorySeparatorChar, p) >= 0)
-                {
-                    temp += ".asm";
-                }
-            }
-            else
-            {
-                temp += ".asm";
+                name += ".asm";
             }
 
             /* check if this file is already opened */
@@ -267,7 +257,7 @@ namespace NesAsmSharp.Assembler.Processors
             {
                 for (i = 1; i < ctx.InFileNum; i++)
                 {
-                    if (ctx.InputFile[i] != null && ctx.InputFile[i].Name == temp)
+                    if (ctx.InputFile[i]?.Name == name)
                     {
                         outPr.Error("Repeated include file!");
                         return 1;
@@ -275,16 +265,16 @@ namespace NesAsmSharp.Assembler.Processors
                 }
             }
 
-            if (!File.Exists(temp))
+            if (!File.Exists(name))
             {
-                outPr.Error($"'{temp}' not found!");
+                outPr.Error($"'{name}' not found!");
                 return 1;
             }
 
             /* open the file */
             try
             {
-                sr = new StreamReader(temp, opt.Encoding);
+                sr = new StreamReader(name, opt.Encoding);
             }
             catch (Exception e)
             {
@@ -292,18 +282,18 @@ namespace NesAsmSharp.Assembler.Processors
             }
 
             /* update input file infos */
-            opt.InFp = sr;
-            ctx.SLNum = 0;
+            ctx.InFp = sr;
+            ctx.SrcLineNum = 0;
             ctx.InFileNum++;
             var inputInfo = new NesAsmInputInfo();
             inputInfo.Fp = sr;
             inputInfo.IfLevel = ctx.IfLevel;
-            inputInfo.Name = temp;
+            inputInfo.Name = name;
             ctx.InputFile[ctx.InFileNum] = inputInfo;
 
             if ((ctx.Pass == PassFlag.LAST_PASS) && (opt.XListOpt) && (opt.ListLevel > 0))
             {
-                opt.LstFp.WriteLine("#[{0}]   {1}", ctx.InFileNum, ctx.InputFile[ctx.InFileNum].Name);
+                ctx.LstFp.WriteLine("#[{0}]   {1}", ctx.InFileNum, ctx.InputFile[ctx.InFileNum].Name);
             }
 
             /* ok */
@@ -333,14 +323,14 @@ namespace NesAsmSharp.Assembler.Processors
             }
             if (ctx.InFileNum <= 1) return (-1);
 
-            opt.InFp.Close();
+            ctx.InFp.Close();
             ctx.InputFile[ctx.InFileNum--] = null;
             ctx.InFileError = -1;
-            ctx.SLNum = ctx.InputFile[ctx.InFileNum].LNum;
-            opt.InFp = ctx.InputFile[ctx.InFileNum].Fp;
+            ctx.SrcLineNum = ctx.InputFile[ctx.InFileNum].LineNum;
+            ctx.InFp = ctx.InputFile[ctx.InFileNum].Fp;
             if ((ctx.Pass == PassFlag.LAST_PASS) && (opt.XListOpt) && (opt.ListLevel > 0))
             {
-                opt.LstFp.WriteLine("#[{0}]   {1}", ctx.InFileNum, ctx.InputFile[ctx.InFileNum].Name);
+                ctx.LstFp.WriteLine("#[{0}]   {1}", ctx.InFileNum, ctx.InputFile[ctx.InFileNum].Name);
             }
 
             /* ok */

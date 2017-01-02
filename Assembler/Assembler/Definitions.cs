@@ -318,9 +318,18 @@ namespace NesAsmSharp.Assembler
 
     public class NesAsmInputInfo
     {
+        /// <summary>
+        /// ソース読み込み用StreamReaderオブジェクト
+        /// </summary>
         public StreamReader Fp { get; set; }
-        public int LNum { get; set; } // Line number
+        /// <summary>
+        /// 読んだ行数
+        /// </summary>
+        public int LineNum { get; set; } // Line number
         public int IfLevel { get; set; }
+        /// <summary>
+        /// ソースファイル名
+        /// </summary>
         public string Name { get; set; }
     }
 
