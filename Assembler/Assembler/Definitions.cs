@@ -78,6 +78,10 @@ namespace NesAsmSharp.Assembler
         /// 式中の文字列の最大文字数
         /// </summary>
         public static readonly int STRING_LEN_MAX = 127;
+        /// <summary>
+        /// 式中の文字列に割り当てるIDの初期値
+        /// </summary>
+        public static readonly int STRING_ID_OFFSET = 0x0FFF0000;
 
         /// <summary>
         /// セクション名

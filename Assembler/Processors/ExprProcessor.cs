@@ -797,13 +797,11 @@ namespace NesAsmSharp.Assembler.Processors
                 val0 = ctx.ExprLablPtr.DataSize;
                 break;
             case OperatorType.OP_REGIONSIZE:
-                string str = null;
                 NesAsmRegion region = null;
-                if (0 <= val0 && val0 < ctx.StringTbl.Count)
-                {
-                    str = ctx.StringTbl[val0];
-                    region = ctx.RegionTbl.GetValueOrDefault(str);
-                }
+
+                var str = LookUpString(val0);
+                if (str != null) region = ctx.RegionTbl.GetValueOrDefault(str);
+
                 if (ctx.Pass == PassFlag.LAST_PASS)
                 {
                     if (str == null)
@@ -957,7 +955,21 @@ namespace NesAsmSharp.Assembler.Processors
                 ctx.StringTbl.Add(str);
                 val = ctx.StringTbl.Count - 1;
             }
-            return val;
+            var strId = Definition.STRING_ID_OFFSET + val;
+            return strId;
+        }
+
+        /// <summary>
+        /// IDでテーブルから文字列を取得する
+        /// </summary>
+        /// <param name="strId"></param>
+        /// <returns></returns>
+        public string LookUpString(int strId)
+        {
+            var idx = strId - Definition.STRING_ID_OFFSET;
+            if (idx < 0 || idx >= ctx.StringTbl.Count) return null;
+
+            return ctx.StringTbl[idx];
         }
 
         /// <summary>
