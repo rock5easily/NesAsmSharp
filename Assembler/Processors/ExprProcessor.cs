@@ -797,11 +797,20 @@ namespace NesAsmSharp.Assembler.Processors
                 val0 = ctx.ExprLablPtr.DataSize;
                 break;
             case OperatorType.OP_REGIONSIZE:
-                var str = ctx.StringTbl[val0];
-                var region = ctx.RegionTbl.GetValueOrDefault(str);
+                string str = null;
+                NesAsmRegion region = null;
+                if (0 <= val0 && val0 < ctx.StringTbl.Count)
+                {
+                    str = ctx.StringTbl[val0];
+                    region = ctx.RegionTbl.GetValueOrDefault(str);
+                }
                 if (ctx.Pass == PassFlag.LAST_PASS)
                 {
-                    if (region == null)
+                    if (str == null)
+                    {
+                        outPr.Error($"Invalid argument!");
+                    }
+                    else if (region == null)
                     {
                         outPr.Error($"Region '{str}' not found!");
                     }
