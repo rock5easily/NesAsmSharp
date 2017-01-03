@@ -74,6 +74,10 @@ namespace NesAsmSharp.Assembler
         /// リージョン名の最大文字数
         /// </summary>
         public static readonly int REGION_NAME_MAX = 64;
+        /// <summary>
+        /// 式中の文字列の最大文字数
+        /// </summary>
+        public static readonly int STRING_LEN_MAX = 127;
 
         /// <summary>
         /// セクション名
@@ -236,6 +240,7 @@ namespace NesAsmSharp.Assembler
         T_CHAR,
         T_SYMBOL,
         T_PC,
+        T_STRING,
     }
 
     /* operators */
@@ -270,6 +275,7 @@ namespace NesAsmSharp.Assembler
         OP_VRAM = 26,
         OP_PAL = 27,
         OP_SIZEOF = 28,
+        OP_REGIONSIZE = 29,
     }
 
     /* pass flags */

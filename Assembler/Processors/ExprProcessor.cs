@@ -18,7 +18,8 @@ namespace NesAsmSharp.Assembler.Processors
             9 /* NOT   */,  4 /* =     */,  4 /* <>    */,  5 /* <     */,
             5 /* <=    */,  5 /* >     */,  5 /* >=    */,
             10 /* DEFIN.*/, 10 /* HIGH  */, 10 /* LOW   */, 10 /* PAGE  */,
-            10 /* BANK  */, 10 /* VRAM  */, 10 /* PAL   */, 10 /* SIZEOF*/
+            10 /* BANK  */, 10 /* VRAM  */, 10 /* PAL   */, 10 /* SIZEOF*/,
+            10 /* REGIONSIZE */
         };
 
         public static readonly string[] Keyword = {    /* predefined functions */
@@ -30,6 +31,7 @@ namespace NesAsmSharp.Assembler.Processors
             "VRAM",
             "PAL",
             "SIZEOF",
+            "REGIONSIZE",
         };
 
         public ExprProcessor(NesAsmContext ctx) : base(ctx)
@@ -310,6 +312,10 @@ namespace NesAsmSharp.Assembler.Processors
                             end = 3;
                         }
                         break;
+                    // string
+                    case '\"':
+                        if (PushVal(ValueType.T_STRING) == 0) return (0);
+                        break;
                     /* space or tab */
                     case ' ':
                     case '\t':
@@ -536,6 +542,11 @@ namespace NesAsmSharp.Assembler.Processors
                     val = (val * mul) + c;
                 }
                 break;
+            case ValueType.T_STRING:
+                var strId = RegisterString(ctx.Expr);
+                if (strId < 0) return (0);
+                val = (uint)strId;
+                break;
             }
 
             /* check for too big expression */
@@ -636,6 +647,8 @@ namespace NesAsmSharp.Assembler.Processors
                 op = OperatorType.OP_BANK;
             else if (symupstr == Keyword[7])
                 op = OperatorType.OP_SIZEOF;
+            else if (symupstr == Keyword[8])
+                op = OperatorType.OP_REGIONSIZE;
             else
             {
                 if (ctx.Machine.Type == MachineType.MACHINE_PCE)
@@ -783,6 +796,22 @@ namespace NesAsmSharp.Assembler.Processors
                 }
                 val0 = ctx.ExprLablPtr.DataSize;
                 break;
+            case OperatorType.OP_REGIONSIZE:
+                var str = ctx.StringTbl[val0];
+                var region = ctx.RegionTbl.GetValueOrDefault(str);
+                if (ctx.Pass == PassFlag.LAST_PASS)
+                {
+                    if (region == null)
+                    {
+                        outPr.Error($"Region '{str}' not found!");
+                    }
+                    else if (region.BeginBank < 0 || region.BeginLocCnt < 0 || region.EndBank < 0 || region.EndLocCnt < 0)
+                    {
+                        outPr.Error($"Region '{str}' invalid!");
+                    }
+                }
+                val0 = region?.RegionSize ?? 0;
+                break;
             /* HIGH */
             case OperatorType.OP_HIGH:
                 val0 = (val0 & 0xFF00) >> 8;
@@ -866,6 +895,60 @@ namespace NesAsmSharp.Assembler.Processors
             /* result */
             ctx.ValStack.Push((uint)val0);
             return 1;
+        }
+
+        /// <summary>
+        /// register a string to StringTbl
+        /// </summary>
+        /// <param name="ip"></param>
+        /// <param name="buffer"></param>
+        /// <param name="size"></param>
+        /// <returns>string id</returns>
+        public int RegisterString(ArrayPointer<char> expr)
+        {
+            char c;
+            int i;
+            char[] buf = new char[Definition.STRING_LEN_MAX + 1];
+
+            /* skip spaces */
+            while (CharUtil.IsSpace(expr.Value)) expr++;
+
+            /* string must be enclosed */
+            if (expr.Read() != '\"')
+            {
+                outPr.Error("Incorrect string syntax!");
+                return (-1);
+            }
+
+            /* get string */
+            i = 0;
+            for (;;)
+            {
+                c = expr.Read();
+                if (c == '\"') break;
+                if (i >= Definition.STRING_LEN_MAX)
+                {
+                    outPr.Error("String too long!");
+                    return (-1);
+                }
+                buf[i++] = c;
+            }
+
+            /* end the string */
+            buf[i] = '\0';
+
+            /* skip spaces */
+            while (CharUtil.IsSpace(expr.Value)) expr++;
+
+            /* ok */
+            var str = buf.ToStringFromNullTerminated();
+            var val = ctx.StringTbl.IndexOf(str);
+            if (val < 0)
+            {
+                ctx.StringTbl.Add(str);
+                val = ctx.StringTbl.Count - 1;
+            }
+            return val;
         }
 
         /// <summary>
