@@ -51,3 +51,25 @@ http://www.2a03.jp/~minachun/nesasm/nesasm_x86.html
 Region subroutine  :        8 bytes (0x000008 bytes)
 =====================================================
 ```
+
+### REGIONSIZE() function
+
+.BEGINREGION/.ENDREGION で定義した領域のバイト数を取得します
+
+* サンプルコード
+```
+  .bank $04
+  .org $9876
+  .beginregion "subroutine"
+  lda <$00
+  clc
+  adc <$01
+  sta <$02
+  rts
+  .endregion "subroutine"
+  ;
+  ; get region size
+SUBROUTINE_SIZE = REGIONSIZE("subroutine")
+  .db (SUBROUTINE_SIZE & $FF) ; $08
+  .db ((SUBROUTINE_SIZE >> 8) & $FF) ; $00
+```
