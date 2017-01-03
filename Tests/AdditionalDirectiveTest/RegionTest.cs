@@ -18,14 +18,14 @@ namespace NesAsmSharp.Tests
             {
                 var opt = new NesAsmOption()
                 {
-                    InFName = Path.Combine(TestDataDirectory, "invalid_region_sample1.asm"),
+                    InFName = "invalid_region_sample1.asm",
                     OutputBinDisabled = true,
                     OutputLstDisabled = true
                 };
 
                 assembler = AssemblerFactory.CreateAssembler(MachineType.MACHINE_NES, opt);
                 assembler.Assemble();
-            });
+            }, TestDataDirectory);
 
             Assert.IsFalse(assembler.AssembleSuccess);
             StringAssert.Contains(consoleMsg, @"BEGINREGION: region name is required!");
@@ -41,14 +41,14 @@ namespace NesAsmSharp.Tests
             {
                 var opt = new NesAsmOption()
                 {
-                    InFName = Path.Combine(TestDataDirectory, "invalid_region_sample2.asm"),
+                    InFName = "invalid_region_sample2.asm",
                     OutputBinDisabled = true,
                     OutputLstDisabled = true
                 };
 
                 assembler = AssemblerFactory.CreateAssembler(MachineType.MACHINE_NES, opt);
                 assembler.Assemble();
-            });
+            }, TestDataDirectory);
 
             Assert.IsFalse(assembler.AssembleSuccess);
             StringAssert.Contains(consoleMsg, @"BEGINREGION: region name must be non-empty string");
@@ -64,14 +64,14 @@ namespace NesAsmSharp.Tests
             {
                 var opt = new NesAsmOption()
                 {
-                    InFName = Path.Combine(TestDataDirectory, "insufficient_region_sample.asm"),
+                    InFName = "insufficient_region_sample.asm",
                     OutputBinDisabled = true,
                     OutputLstDisabled = true
                 };
 
                 assembler = AssemblerFactory.CreateAssembler(MachineType.MACHINE_NES, opt);
                 assembler.Assemble();
-            });
+            }, TestDataDirectory);
 
             Assert.IsTrue(assembler.AssembleSuccess);
             StringAssert.Contains(consoleMsg, @"Region insufficent_region1: ENDREGION not found");
@@ -87,14 +87,14 @@ namespace NesAsmSharp.Tests
             {
                 var opt = new NesAsmOption()
                 {
-                    InFName = Path.Combine(TestDataDirectory, "empty_region_sample.asm"),
+                    InFName = "empty_region_sample.asm",
                     OutputBinDisabled = true,
                     OutputLstDisabled = true
                 };
 
                 assembler = AssemblerFactory.CreateAssembler(MachineType.MACHINE_NES, opt);
                 assembler.Assemble();
-            });
+            }, TestDataDirectory);
 
             Assert.IsTrue(assembler.AssembleSuccess);
             StringAssert.Contains(consoleMsg, @"Region emptyregion1:        0 bytes (0x000000 bytes)");
@@ -110,14 +110,14 @@ namespace NesAsmSharp.Tests
             {
                 var opt = new NesAsmOption()
                 {
-                    InFName = Path.Combine(TestDataDirectory, "various_region_sample.asm"),
+                    InFName = "various_region_sample.asm",
                     OutputBinDisabled = true,
                     OutputLstDisabled = true
                 };
 
                 assembler = AssemblerFactory.CreateAssembler(MachineType.MACHINE_NES, opt);
                 assembler.Assemble();
-            });
+            }, TestDataDirectory);
 
             Assert.IsTrue(assembler.AssembleSuccess);
             StringAssert.Contains(consoleMsg, @"Region bank00start-end1:     8191 bytes (0x001FFF bytes)");

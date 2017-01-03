@@ -647,6 +647,7 @@ namespace NesAsmSharp.Assembler.Processors
                                 _loc = 0;
                                 _bank++;
                                 _page = (_page + 1) & 0x07;
+                                if (_page == 0) _page = 4; // reset page: 8000-9FFF
                                 m = (byte)(ctx.Section + (_page << 5));
                             }
                         }

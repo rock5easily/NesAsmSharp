@@ -165,7 +165,14 @@ namespace NesAsmSharp.Assembler.Processors
             {
                 var newBank = ctx.Bank + offset / 0x2000;
                 var newOffset = offset & 0x1FFF;
-                var newPage = (ctx.Page + offset / 0x2000) & 0x07;
+                var overcnt = offset / 0x2000;
+                var newPage = ctx.Page;
+                for (var i = 0; i < overcnt; i++)
+                {
+                    newPage = (newPage + 1) & 0x07;
+                    if (newPage == 0) newPage = 4; // reset page: 8000-9FFF
+                }
+
                 if (newBank >= Definition.RESERVED_BANK)
                 {
                     outPr.FatalError("ROM overflow!(PutOverBank)");
@@ -265,6 +272,7 @@ namespace NesAsmSharp.Assembler.Processors
                                 locCnt = 0;
                                 bank++;
                                 page = (page + 1) & 0x07;
+                                if (page == 0) page = 4; // reset page: 8000-9FFF
                             }
                         }
                     }
@@ -280,6 +288,7 @@ namespace NesAsmSharp.Assembler.Processors
                                 locCnt = 0;
                                 bank++;
                                 page = (page + 1) & 0x07;
+                                if (page == 0) page = 4; // reset page: 8000-9FFF
                             }
                         }
                     }
@@ -287,7 +296,12 @@ namespace NesAsmSharp.Assembler.Processors
             }
 
             /* update the location counter */
-            ctx.Page = ((ctx.LocCnt + size) / 0x2000 + ctx.Page) & 0x07;
+            var overcnt = (ctx.LocCnt + size) / 0x2000;
+            for (var i = 0; i < overcnt; i++)
+            {
+                ctx.Page = (ctx.Page + 1) & 0x07;
+                if (ctx.Page == 0) ctx.Page = 4; // reset page: 8000-9FFF
+            }
             ctx.Bank += (ctx.LocCnt + size) >> 13;
             ctx.LocCnt = (ctx.LocCnt + size) & 0x1FFF;
 
