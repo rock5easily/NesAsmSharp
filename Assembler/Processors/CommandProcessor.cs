@@ -623,7 +623,6 @@ namespace NesAsmSharp.Assembler.Processors
                     /* check if it will fit in the rom */
                     if (((ctx.Bank << 13) + ctx.LocCnt + longsize) > ctx.RomLimit)
                     {
-                        fsBin.Close();
                         outPr.Error("ROM overflow!");
                         return;
                     }
@@ -637,6 +636,7 @@ namespace NesAsmSharp.Assembler.Processors
 
                         var _bank = ctx.Bank;
                         var _loc = ctx.LocCnt;
+                        var _page = ctx.Page;
                         var m = (byte)(ctx.Section + (ctx.Page << 5));
                         for (var i = 0; i < size; i++)
                         {
@@ -646,6 +646,9 @@ namespace NesAsmSharp.Assembler.Processors
                             {
                                 _loc = 0;
                                 _bank++;
+                                _page = (_page + 1) & 0x07;
+                                if (_page == 0) _page = 4; // reset page: 8000-9FFF
+                                m = (byte)(ctx.Section + (_page << 5));
                             }
                         }
 
@@ -661,6 +664,7 @@ namespace NesAsmSharp.Assembler.Processors
             }
 
             /* update bank and location counters */
+            ctx.Page = ((ctx.LocCnt + size) / 0x2000 + ctx.Page) & 0x07;
             ctx.Bank += (ctx.LocCnt + size) >> 13;
             ctx.LocCnt = (ctx.LocCnt + size) & 0x1FFF;
             if (ctx.Bank > ctx.MaxBank)

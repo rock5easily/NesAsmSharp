@@ -61,9 +61,13 @@
       <Name>Assembler</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="TestData\1024bytes.bin" />
+    <None Include="TestData\16KB.bin" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="TestData\catbank_sample.asm" />
+    <Content Include="TestData\incbin_catbank_sample.asm" />
     <Content Include="TestData\insufficient_region_sample.asm" />
     <Content Include="TestData\invalid_region_sample1.asm" />
     <Content Include="TestData\invalid_region_sample2.asm" />

@@ -31,6 +31,16 @@ namespace NesAsmSharp.Assembler
                 return GetResultBinary();
             }
         }
+        /// <summary>
+        /// アセンブル結果のMap情報のbyte配列
+        /// </summary>
+        public byte[] ResultMap
+        {
+            get
+            {
+                return GetResultMap();
+            }
+        }
 
         public NesAsmContext Context
         {
@@ -242,6 +252,12 @@ namespace NesAsmSharp.Assembler
                         {
                             if (ctx.BankCat[ctx.LocCnt / 0x2000 + ctx.Bank - 1])
                             {
+                                var newPage = (ctx.LocCnt / 0x2000 + ctx.Page) & 0x07;
+                                var newBank = ctx.LocCnt / 0x2000 + ctx.Bank;
+                                var newLocCnt = ctx.LocCnt & 0x1FFF;
+                                ctx.Page = newPage;
+                                ctx.Bank = newBank;
+                                ctx.LocCnt = newLocCnt;
                                 continue;
                             }
                             else
@@ -551,6 +567,22 @@ namespace NesAsmSharp.Assembler
             var len = 8192 * (ctx.MaxBank + 1);
             var result = new byte[len];
             Array.Copy(rom, 0, result, 0, len);
+            return result;
+        }
+
+        /// <summary>
+        /// アセンブル結果のMap情報をbyte配列で返す
+        /// NESヘッダは付加されない
+        /// </summary>
+        /// <returns></returns>
+        private byte[] GetResultMap()
+        {
+            if (!AssembleSuccess) return null;
+            var map = ctx.Map.ToByteArray();
+
+            var len = 8192 * (ctx.MaxBank + 1);
+            var result = new byte[len];
+            Array.Copy(map, 0, result, 0, len);
             return result;
         }
 

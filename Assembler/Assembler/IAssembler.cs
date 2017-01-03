@@ -21,6 +21,10 @@ namespace NesAsmSharp.Assembler
         /// </summary>
         byte[] ResultBinary { get; }
         /// <summary>
+        /// アセンブル結果のMap情報のbyte配列
+        /// </summary>
+        byte[] ResultMap { get; }
+        /// <summary>
         /// アセンブルを実行する
         /// </summary>
         /// <returns></returns>
