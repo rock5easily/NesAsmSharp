@@ -31,6 +31,16 @@ namespace NesAsmSharp.Assembler
                 return GetResultBinary();
             }
         }
+        /// <summary>
+        /// アセンブル結果のMap情報のbyte配列
+        /// </summary>
+        public byte[] ResultMap
+        {
+            get
+            {
+                return GetResultMap();
+            }
+        }
 
         public NesAsmContext Context
         {
@@ -557,6 +567,22 @@ namespace NesAsmSharp.Assembler
             var len = 8192 * (ctx.MaxBank + 1);
             var result = new byte[len];
             Array.Copy(rom, 0, result, 0, len);
+            return result;
+        }
+
+        /// <summary>
+        /// アセンブル結果のMap情報をbyte配列で返す
+        /// NESヘッダは付加されない
+        /// </summary>
+        /// <returns></returns>
+        private byte[] GetResultMap()
+        {
+            if (!AssembleSuccess) return null;
+            var map = ctx.Map.ToByteArray();
+
+            var len = 8192 * (ctx.MaxBank + 1);
+            var result = new byte[len];
+            Array.Copy(map, 0, result, 0, len);
             return result;
         }
 
