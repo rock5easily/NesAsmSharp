@@ -164,14 +164,15 @@ namespace NesAsmSharp.Assembler.Processors
             else
             {
                 var newBank = ctx.Bank + offset / 0x2000;
-                var newOffset = offset % 0x2000;
+                var newOffset = offset & 0x1FFF;
+                var newPage = (ctx.Page + offset / 0x2000) & 0x07;
                 if (newBank >= Definition.RESERVED_BANK)
                 {
                     outPr.FatalError("ROM overflow!(PutOverBank)");
                     return;
                 }
                 ctx.Rom[newBank, newOffset] = (byte)((data) & 0xFF);
-                ctx.Map[newBank, newOffset] = (byte)(ctx.Section + (ctx.Page << 5));
+                ctx.Map[newBank, newOffset] = (byte)(ctx.Section + (newPage << 5));
 
                 /* update rom size */
                 if (newBank > ctx.MaxBank)
@@ -251,17 +252,19 @@ namespace NesAsmSharp.Assembler.Processors
                 {
                     var bank = ctx.Bank;
                     var locCnt = ctx.LocCnt;
+                    var page = ctx.Page;
                     if (data != null)
                     {
                         for (var i = 0; i < size; i++)
                         {
                             ctx.Rom[bank, locCnt] = data[i];
-                            ctx.Map[bank, locCnt] = (byte)(ctx.Section + (ctx.Page << 5));
+                            ctx.Map[bank, locCnt] = (byte)(ctx.Section + (page << 5));
                             locCnt++;
                             if (locCnt == 0x2000)
                             {
                                 locCnt = 0;
                                 bank++;
+                                page = (page + 1) & 0x07;
                             }
                         }
                     }
@@ -270,12 +273,13 @@ namespace NesAsmSharp.Assembler.Processors
                         for (var i = 0; i < size; i++)
                         {
                             ctx.Rom[bank, locCnt] = 0;
-                            ctx.Map[bank, locCnt] = (byte)(ctx.Section + (ctx.Page << 5));
+                            ctx.Map[bank, locCnt] = (byte)(ctx.Section + (page << 5));
                             locCnt++;
                             if (locCnt == 0x2000)
                             {
                                 locCnt = 0;
                                 bank++;
+                                page = (page + 1) & 0x07;
                             }
                         }
                     }
@@ -283,6 +287,7 @@ namespace NesAsmSharp.Assembler.Processors
             }
 
             /* update the location counter */
+            ctx.Page = ((ctx.LocCnt + size) / 0x2000 + ctx.Page) & 0x07;
             ctx.Bank += (ctx.LocCnt + size) >> 13;
             ctx.LocCnt = (ctx.LocCnt + size) & 0x1FFF;
 

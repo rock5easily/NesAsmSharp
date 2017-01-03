@@ -242,6 +242,12 @@ namespace NesAsmSharp.Assembler
                         {
                             if (ctx.BankCat[ctx.LocCnt / 0x2000 + ctx.Bank - 1])
                             {
+                                var newPage = (ctx.LocCnt / 0x2000 + ctx.Page) & 0x07;
+                                var newBank = ctx.LocCnt / 0x2000 + ctx.Bank;
+                                var newLocCnt = ctx.LocCnt & 0x1FFF;
+                                ctx.Page = newPage;
+                                ctx.Bank = newBank;
+                                ctx.LocCnt = newLocCnt;
                                 continue;
                             }
                             else
