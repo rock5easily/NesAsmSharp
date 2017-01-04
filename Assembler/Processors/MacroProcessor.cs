@@ -31,8 +31,7 @@ namespace NesAsmSharp.Assembler.Processors
                 if (ctx.LablPtr == null)
                 {
                     /* skip spaces */
-                    while (CharUtil.IsSpace(ctx.PrLnBuf[ip]))
-                        ip++;
+                    while (CharUtil.IsSpace(ctx.PrLnBuf[ip])) ip++;
 
                     /* search a label after the .macro */
                     if (symPr.ColSym(ref ip) == 0)
@@ -42,8 +41,7 @@ namespace NesAsmSharp.Assembler.Processors
                     }
 
                     /* put the macro name in the symbol table */
-                    if ((ctx.LablPtr = symPr.STLook(1)) == null)
-                        return;
+                    if ((ctx.LablPtr = symPr.STLook(1)) == null) return;
                 }
                 if (ctx.LablPtr.RefCnt != 0)
                 {
@@ -52,11 +50,9 @@ namespace NesAsmSharp.Assembler.Processors
                     case SymbolFlag.MACRO:
                         outPr.FatalError("Macro already defined!");
                         return;
-
                     case SymbolFlag.FUNC:
                         outPr.FatalError("Symbol already used by a function!");
                         return;
-
                     default:
                         outPr.FatalError("Symbol already used by a label!");
                         return;

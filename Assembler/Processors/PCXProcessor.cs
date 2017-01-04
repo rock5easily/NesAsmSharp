@@ -239,7 +239,7 @@ namespace NesAsmSharp.Assembler.Processors
                 if (c != ',') break;
 
                 /* get arg */
-                if (exprPr.Evaluate(ref ip, '\0') == 0) return (0);
+                if (exprPr.Evaluate(ref ip, (char)0) == 0) return (0);
 
                 /* store arg */
                 ctx.PcxArg[ctx.PcxNbArgs++] = ctx.Value;

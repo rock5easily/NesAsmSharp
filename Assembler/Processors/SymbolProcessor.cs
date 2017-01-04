@@ -27,7 +27,7 @@ namespace NesAsmSharp.Assembler.Processors
             char c;
             var symbol = ctx.Symbol;
 
-            /* get the symbol */
+            // get the symbol
             for (;;)
             {
                 c = ctx.PrLnBuf[ip];
@@ -46,21 +46,18 @@ namespace NesAsmSharp.Assembler.Processors
                 ip++;
             }
 
-            /* check if it's a reserved symbol */
+            // check if it's a reserved symbol
             if (i == 1)
             {
-                switch (char.ToUpper(symbol[0]))
-                {
-                case 'A':
-                case 'X':
-                case 'Y':
-                    err = true;
-                    break;
-                }
+                c = char.ToUpper(symbol[0]);
+                if (c == 'A' || c == 'X' || c == 'Y') err = true;
             }
-            if (exprPr.CheckKeyword() != 0) err = true;
+            else if (exprPr.CheckKeyword() != 0)
+            {
+                err = true;
+            }
 
-            /* error */
+            // error
             if (err)
             {
                 outPr.FatalError("Reserved symbol!");
@@ -68,7 +65,7 @@ namespace NesAsmSharp.Assembler.Processors
                 return 0;
             }
 
-            /* ok */
+            // ok
             symbol[i] = '\0';
             return i;
         }
@@ -92,8 +89,7 @@ namespace NesAsmSharp.Assembler.Processors
                 if (ctx.GLablPtr != null)
                 {
                     /* search the symbol in the local list */
-                    var lSymList = ctx.GLablPtr.Local;
-                    sym = lSymList?.FirstOrDefault(s => symstr == s.Name);
+                    sym = ctx.GLablPtr.Local?.FirstOrDefault(s => symstr == s.Name);
 
                     /* new symbol */
                     if (sym == null)
@@ -146,25 +142,24 @@ namespace NesAsmSharp.Assembler.Processors
         /// <returns></returns>
         public NesAsmSymbol STInstall(string symName, SymbolScope scope)
         {
-            NesAsmSymbol sym = new NesAsmSymbol();
-
-            /* init the symbol struct */
-            sym.Type = ctx.IfExpr ? SymbolFlag.IFUNDEF : SymbolFlag.UNDEF;
-            sym.Value = 0;
-            sym.Local = null;
-            sym.Proc = null;
-            sym.Bank = Definition.RESERVED_BANK;
-            sym.Nb = 0;
-            sym.Size = 0;
-            sym.Page = -1;
-            sym.Vram = -1;
-            sym.Pal = -1;
-            sym.RefCnt = 0;
-            sym.Reserved = 0;
-            sym.DataType = AsmDirective.P_UNDEFINED;
-            sym.DataSize = 0;
-            sym.Name = symName;
-
+            NesAsmSymbol sym = new NesAsmSymbol()
+            {
+                Type = ctx.IfExpr ? SymbolFlag.IFUNDEF : SymbolFlag.UNDEF,
+                Value = 0,
+                Local = null,
+                Proc = null,
+                Bank = Definition.RESERVED_BANK,
+                Nb = 0,
+                Size = 0,
+                Page = -1,
+                Vram = -1,
+                Pal = -1,
+                RefCnt = 0,
+                Reserved = false,
+                DataType = AsmDirective.P_UNDEFINED,
+                DataSize = 0,
+                Name = symName
+            };
 
             /* add the symbol to the hash table */
             if (scope == SymbolScope.LOCAL)
@@ -198,8 +193,7 @@ namespace NesAsmSharp.Assembler.Processors
             char c;
 
             /* check for NULL ptr */
-            var lablPtr = ctx.LablPtr;
-            if (lablPtr == null) return (0);
+            if (ctx.LablPtr == null) return (0);
 
             /* adjust symbol address */
             if (flag != 0)
@@ -211,12 +205,12 @@ namespace NesAsmSharp.Assembler.Processors
             /* first pass */
             if (ctx.Pass == PassFlag.FIRST_PASS)
             {
-                switch (lablPtr.Type)
+                switch (ctx.LablPtr.Type)
                 {
                 /* undefined */
                 case SymbolFlag.UNDEF:
-                    lablPtr.Type = SymbolFlag.DEFABS;
-                    lablPtr.Value = lval;
+                    ctx.LablPtr.Type = SymbolFlag.DEFABS;
+                    ctx.LablPtr.Value = lval;
                     break;
                 /* already defined - error */
                 case SymbolFlag.IFUNDEF:
@@ -230,28 +224,27 @@ namespace NesAsmSharp.Assembler.Processors
                     return (-1);
                 default:
                     /* reserved label */
-                    if (lablPtr.Reserved != 0)
+                    if (ctx.LablPtr.Reserved)
                     {
                         outPr.FatalError("Reserved symbol!");
                         return (-1);
                     }
 
                     /* compare the values */
-                    if (lablPtr.Value == lval) break;
+                    if (ctx.LablPtr.Value == lval) break;
 
                     /* normal label */
-                    lablPtr.Type = SymbolFlag.MDEF;
-                    lablPtr.Value = 0;
+                    ctx.LablPtr.Type = SymbolFlag.MDEF;
+                    ctx.LablPtr.Value = 0;
                     outPr.Error("Label multiply defined!");
                     return (-1);
                 }
             }
-
             /* second pass */
             else
             {
-                if ((lablPtr.Value != lval) ||
-                   ((flag != 0) && (ctx.Bank < ctx.BankLimit) && (lablPtr.Bank != ctx.BankBase + ctx.Bank)))
+                if ((ctx.LablPtr.Value != lval) ||
+                   ((flag != 0) && (ctx.Bank < ctx.BankLimit) && (ctx.LablPtr.Bank != ctx.BankBase + ctx.Bank)))
                 {
                     outPr.FatalError("Internal error[1]!");
                     return (-1);
@@ -263,16 +256,18 @@ namespace NesAsmSharp.Assembler.Processors
             {
                 if (ctx.Section == SectionType.S_CODE)
                 {
-                    lablPtr.Proc = ctx.ProcPtr;
+                    ctx.LablPtr.Proc = ctx.ProcPtr;
                 }
-                lablPtr.Bank = ctx.BankBase + ctx.Bank;
-                lablPtr.Page = ctx.Page;
+                ctx.LablPtr.Bank = ctx.BankBase + ctx.Bank;
+                ctx.LablPtr.Page = ctx.Page;
 
                 /* check if it's a local or global symbol */
-                c = lablPtr.Name[0];
+                c = ctx.LablPtr.Name[0];
                 if (c == '.')
+                {
                     /* local */
                     ctx.LastLabl = null;
+                }
                 else
                 {
                     /* global */
@@ -299,12 +294,11 @@ namespace NesAsmSharp.Assembler.Processors
                 ctx.Symbol.CopyAsNullTerminated(name);
                 ctx.LablPtr = STLook(1);
 
-                var lablPtr = ctx.LablPtr;
-                if (lablPtr != null)
+                if (ctx.LablPtr != null)
                 {
-                    lablPtr.Type = SymbolFlag.DEFABS;
-                    lablPtr.Value = val;
-                    lablPtr.Reserved = 1;
+                    ctx.LablPtr.Type = SymbolFlag.DEFABS;
+                    ctx.LablPtr.Value = val;
+                    ctx.LablPtr.Reserved = true;
                 }
             }
 
@@ -322,7 +316,7 @@ namespace NesAsmSharp.Assembler.Processors
         public void LablRemap()
         {
             /* browse the symbol table */
-            foreach(var sym in ctx.HashTbl.Values)
+            foreach (var sym in ctx.HashTbl.Values)
             {
                 sym.Local?.ForEach(lsym =>
                 {

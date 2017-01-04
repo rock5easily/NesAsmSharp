@@ -358,7 +358,7 @@ namespace NesAsmSharp.Assembler
         public int Vram { get; set; }
         public int Pal { get; set; }
         public int RefCnt { get; set; }
-        public int Reserved { get; set; }
+        public bool Reserved { get; set; }
         public AsmDirective DataType { get; set; }
         public int DataSize { get; set; }
         public string Name { get; set; }

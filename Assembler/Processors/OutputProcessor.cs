@@ -419,11 +419,9 @@ namespace NesAsmSharp.Assembler.Processors
         /// <param name="str"></param>
         public void Warning(string str)
         {
-            int i, temp;
-
             /* put the source line number into prlnbuf */
-            i = 4;
-            temp = ctx.SrcLineNum;
+            var i = 4;
+            var temp = ctx.SrcLineNum;
             while (temp != 0)
             {
                 ctx.PrLnBuf[i--] = (char)(temp % 10 + '0');

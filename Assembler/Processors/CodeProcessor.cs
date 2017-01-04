@@ -742,7 +742,7 @@ namespace NesAsmSharp.Assembler.Processors
                 }
 
                 /* get value */
-                if (exprPr.Evaluate(ref ip, '\0') == 0) return (0);
+                if (exprPr.Evaluate(ref ip, (char)0) == 0) return (0);
 
                 // 2010/12/30 minachun add
                 /* restore preindexed */
@@ -911,7 +911,7 @@ namespace NesAsmSharp.Assembler.Processors
                     /* get tag */
                     tmp = ctx.Value;
 
-                    if (exprPr.Evaluate(ref ip, '\0') == 0) return (0);
+                    if (exprPr.Evaluate(ref ip, (char)0) == 0) return (0);
 
                     /* ok */
                     ctx.AutoTag = 1;

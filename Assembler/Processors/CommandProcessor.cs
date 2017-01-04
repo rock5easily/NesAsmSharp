@@ -215,7 +215,7 @@ namespace NesAsmSharp.Assembler.Processors
                 else
                 {
                     /* get a byte */
-                    if (exprPr.Evaluate(ref ip, '\0') == 0) return;
+                    if (exprPr.Evaluate(ref ip, (char)0) == 0) return;
 
                     /* update location counter */
                     ctx.LocCnt++;
@@ -292,7 +292,7 @@ namespace NesAsmSharp.Assembler.Processors
             for (;;)
             {
                 /* get a word */
-                if (exprPr.Evaluate(ref ip, '\0') == 0)
+                if (exprPr.Evaluate(ref ip, (char)0) == 0)
                     return;
 
                 /* update location counter */
@@ -489,7 +489,7 @@ namespace NesAsmSharp.Assembler.Processors
             symPr.LablDef(ctx.LocCnt, 1);
 
             /* get bank index */
-            if (exprPr.Evaluate(ref ip, '\0') == 0) return;
+            if (exprPr.Evaluate(ref ip, (char)0) == 0) return;
             if (ctx.Value > ctx.BankLimit)
             {
                 outPr.Error("Bank index out of range!");

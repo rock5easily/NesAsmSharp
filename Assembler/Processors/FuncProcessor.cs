@@ -25,16 +25,15 @@ namespace NesAsmSharp.Assembler.Processors
             }
             else
             {
-                var lablPtr = ctx.LablPtr;
                 /* error checking */
-                if (lablPtr == null)
+                if (ctx.LablPtr == null)
                 {
                     outPr.Error("No name for this function!");
                     return;
                 }
-                if (lablPtr.RefCnt > 0)
+                if (ctx.LablPtr.RefCnt > 0)
                 {
-                    switch (lablPtr.Type)
+                    switch (ctx.LablPtr.Type)
                     {
                     case SymbolFlag.MACRO:
                         outPr.FatalError("Symbol already used by a macro!");
@@ -162,7 +161,7 @@ namespace NesAsmSharp.Assembler.Processors
             }
 
             /* return the number of args */
-            return (max_arg);
+            return max_arg;
         }
 
         /// <summary>

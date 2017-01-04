@@ -394,7 +394,6 @@ namespace NesAsmSharp.Assembler.Processors
         public int PushVal(ValueType type)
         {
             uint mul, val;
-            OperatorType op;
 
             val = 0;
             var c = ctx.Expr.Value;
@@ -442,7 +441,7 @@ namespace NesAsmSharp.Assembler.Processors
                 }
 
                 /* a predefined function? */
-                op = CheckKeyword();
+                var op = CheckKeyword();
                 if (op != 0)
                 {
                     if (PushOp(op) == 0)
@@ -561,12 +560,10 @@ namespace NesAsmSharp.Assembler.Processors
         /// <returns></returns>
         public int GetSym()
         {
-            var symbol = ctx.Symbol;
-            bool valid;
             int i;
             char c;
 
-            valid = true;
+            var valid = true;
             i = 0;
 
             /* get the symbol, stop to the first 'non symbol' char */
@@ -578,7 +575,7 @@ namespace NesAsmSharp.Assembler.Processors
                 {
                     if (i < Definition.SBOLSZ)
                     {
-                        symbol[i++] = c;
+                        ctx.Symbol[i++] = c;
                     }
                     else
                     {
@@ -597,19 +594,16 @@ namespace NesAsmSharp.Assembler.Processors
             /* is it a reserved symbol? */
             if (i == 1)
             {
-                switch (char.ToUpper(symbol[0]))
+                c = ctx.Symbol[0];
+                if (c == 'A' || c == 'X' || c == 'Y')
                 {
-                case 'A':
-                case 'X':
-                case 'Y':
                     outPr.Error("Symbol is reserved (A, X or Y)!");
                     i = 0;
-                    break;
                 }
             }
 
             /* store symbol length */
-            symbol[i] = '\0';
+            ctx.Symbol[i] = '\0';
             return i;
         }
 
@@ -685,11 +679,11 @@ namespace NesAsmSharp.Assembler.Processors
             if (ctx.OpStack.Count > Definition.OPSTACK_MAX)
             {
                 outPr.Error("Expression too complex!");
-                return (0);
+                return 0;
             }
             ctx.OpStack.Push(op);
             ctx.NeedOperator = false;
-            return (1);
+            return 1;
         }
 
         /// <summary>
@@ -878,9 +872,13 @@ namespace NesAsmSharp.Assembler.Processors
             string str;
 
             if (ctx.ExprLablCnt == 1)
-                return (1);
+            {
+                return 1;
+            }
             else if (ctx.ExprLablCnt == 0)
+            {
                 str = string.Format(@"No symbol in function {0}!", func_name);
+            }
             else
             {
                 str = string.Format(@"Too many symbols in function {0}!", func_name);
