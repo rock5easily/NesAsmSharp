@@ -78,9 +78,9 @@ namespace NesAsmSharp.Assembler.Processors
         /// if found, return pointer to symbol
         /// else, install symbol as undefined and return pointer
         /// </summary>
-        /// <param name="flag"></param>
+        /// <param name="createFlag"></param>
         /// <returns></returns>
-        public NesAsmSymbol STLook(int flag)
+        public NesAsmSymbol STLook(int createFlag)
         {
             NesAsmSymbol sym = null;
             bool symbolInstalled = false;
@@ -103,7 +103,7 @@ namespace NesAsmSharp.Assembler.Processors
                     /* new symbol */
                     if (sym == null)
                     {
-                        if (flag != 0)
+                        if (createFlag != 0)
                         {
                             sym = STInstall(symstr, SymbolScope.LOCAL);
                             symbolInstalled = true;
@@ -125,7 +125,7 @@ namespace NesAsmSharp.Assembler.Processors
                 /* new symbol */
                 if (sym == null)
                 {
-                    if (flag != 0)
+                    if (createFlag != 0)
                     {
                         sym = STInstall(symstr, SymbolScope.GLOBAL);
                         symbolInstalled = true;
