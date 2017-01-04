@@ -455,7 +455,8 @@ namespace NesAsmSharp.Assembler.Processors
                 }
 
                 /* search the symbol */
-                ctx.ExprLablPtr = symPr.STLook(1);
+                var name = ctx.Symbol.ToStringFromNullTerminated();
+                ctx.ExprLablPtr = symPr.LookUpSymbolTable(name, true);
 
                 /* check if undefined, if not get its value */
                 if (ctx.ExprLablPtr == null)

@@ -119,8 +119,9 @@ namespace NesAsmSharp.Assembler.Processors
                 }
                 else
                 {
+                    var name = ctx.Symbol.ToStringFromNullTerminated();
                     /* lookup symbol table */
-                    if ((ctx.LablPtr = symPr.STLook(0)) == null)
+                    if ((ctx.LablPtr = symPr.LookUpSymbolTable(name, false)) == null)
                     {
                         outPr.FatalError("Undefined destination!");
                         return;
@@ -191,7 +192,8 @@ namespace NesAsmSharp.Assembler.Processors
                 }
 
                 /* lookup symbol table */
-                if ((ctx.LablPtr = symPr.STLook(1)) == null) return;
+                var name = ctx.Symbol.ToStringFromNullTerminated();
+                if ((ctx.LablPtr = symPr.LookUpSymbolTable(name, true)) == null) return;
             }
 
             /* check symbol */

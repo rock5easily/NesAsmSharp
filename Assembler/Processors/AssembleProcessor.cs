@@ -166,7 +166,8 @@ namespace NesAsmSharp.Assembler.Processors
             {
                 if (symPr.ColSym(ref i) != 0)
                 {
-                    if ((ctx.LablPtr = symPr.STLook(1)) == null) return;
+                    var name = ctx.Symbol.ToStringFromNullTerminated();
+                    if ((ctx.LablPtr = symPr.LookUpSymbolTable(name, true)) == null) return;
                 }
                 if ((ctx.LablPtr != null) && (ctx.PrLnBuf[i] == ':')) i++;
             }
@@ -474,7 +475,8 @@ namespace NesAsmSharp.Assembler.Processors
             }
             if (CheckEOL(ref ip) == 0) return;
 
-            ctx.LablPtr = symPr.STLook(0);
+            var name = ctx.Symbol.ToStringFromNullTerminated();
+            ctx.LablPtr = symPr.LookUpSymbolTable(name, false);
 
             /* check for '.if' stack overflow */
             if (ctx.IfLevel == ctx.IfState.Length - 1)

@@ -40,8 +40,9 @@ namespace NesAsmSharp.Assembler.Processors
                         return;
                     }
 
+                    var name = ctx.Symbol.ToStringFromNullTerminated();
                     /* put the macro name in the symbol table */
-                    if ((ctx.LablPtr = symPr.STLook(1)) == null) return;
+                    if ((ctx.LablPtr = symPr.LookUpSymbolTable(name, true)) == null) return;
                 }
                 if (ctx.LablPtr.RefCnt != 0)
                 {
@@ -394,7 +395,8 @@ namespace NesAsmSharp.Assembler.Processors
                     {
                         ctx.Symbol.CopyAsNullTerminated(arg, i);
 
-                        if ((sym = symPr.STLook(0)) == null)
+                        var name = ctx.Symbol.ToStringFromNullTerminated();
+                        if ((sym = symPr.LookUpSymbolTable(name, false)) == null)
                         {
                             return (MacroArgumentType.ARG_LABEL);
                         }
