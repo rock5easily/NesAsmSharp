@@ -78,11 +78,11 @@ namespace NesAsmSharp.Assembler.Processors
         /// if found, return pointer to symbol
         /// else, install symbol as undefined and return pointer
         /// </summary>
-        /// <param name="flag"></param>
+        /// <param name="createFlag"></param>
         /// <returns></returns>
-        public NesAsmSymbol STLook(int flag)
+        public NesAsmSymbol STLook(int createFlag)
         {
-            NesAsmSymbol sym = null;
+            NesAsmSymbol sym;
             bool symbolInstalled = false;
             var symstr = ctx.Symbol.ToStringFromNullTerminated();
 
@@ -92,18 +92,13 @@ namespace NesAsmSharp.Assembler.Processors
                 if (ctx.GLablPtr != null)
                 {
                     /* search the symbol in the local list */
-                    sym = ctx.GLablPtr.Local;
-
-                    while (sym != null)
-                    {
-                        if (symstr == sym.Name) break;
-                        sym = sym.Next;
-                    }
+                    var lSymList = ctx.GLablPtr.Local;
+                    sym = lSymList?.FirstOrDefault(s => symstr == s.Name);
 
                     /* new symbol */
                     if (sym == null)
                     {
-                        if (flag != 0)
+                        if (createFlag != 0)
                         {
                             sym = STInstall(symstr, SymbolScope.LOCAL);
                             symbolInstalled = true;
@@ -125,7 +120,7 @@ namespace NesAsmSharp.Assembler.Processors
                 /* new symbol */
                 if (sym == null)
                 {
-                    if (flag != 0)
+                    if (createFlag != 0)
                     {
                         sym = STInstall(symstr, SymbolScope.GLOBAL);
                         symbolInstalled = true;
@@ -175,8 +170,11 @@ namespace NesAsmSharp.Assembler.Processors
             if (scope == SymbolScope.LOCAL)
             {
                 /* local */
-                sym.Next = ctx.GLablPtr.Local;
-                ctx.GLablPtr.Local = sym;
+                if (ctx.GLablPtr.Local == null)
+                {
+                    ctx.GLablPtr.Local = new List<NesAsmSymbol>();
+                }
+                ctx.GLablPtr.Local.Add(sym);
             }
             else
             {
@@ -324,18 +322,16 @@ namespace NesAsmSharp.Assembler.Processors
         public void LablRemap()
         {
             /* browse the symbol table */
-            foreach(var symbol in ctx.HashTbl.Values)
+            foreach(var sym in ctx.HashTbl.Values)
             {
-                var sym = symbol;
-                while (sym != null)
+                sym.Local?.ForEach(lsym =>
                 {
                     /* remap the bank */
-                    if (sym.Bank <= ctx.BankLimit)
+                    if (lsym.Bank <= ctx.BankLimit)
                     {
-                        sym.Bank += ctx.BankBase;
+                        lsym.Bank += ctx.BankBase;
                     }
-                    sym = sym.Next;
-                }
+                });
             }
         }
 

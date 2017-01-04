@@ -292,18 +292,12 @@ namespace NesAsmSharp.Assembler.Processors
         /// </summary>
         public void ProcReloc()
         {
-            NesAsmSymbol sym;
-            NesAsmSymbol local;
-            NesAsmProc group;
-            int addr;
-            int tmp;
-
             if (ctx.ProcNb == 0) return;
 
             /* init */
             ctx.ProcPtr = ctx.ProcFirst;
             ctx.Bank = ctx.MaxBank + 1;
-            addr = 0;
+            var addr = 0;
 
             /* alloc memory */
             while (ctx.ProcPtr != null)
@@ -311,7 +305,7 @@ namespace NesAsmSharp.Assembler.Processors
                 /* proc */
                 if (ctx.ProcPtr.Group == null)
                 {
-                    tmp = addr + ctx.ProcPtr.Size;
+                    var tmp = addr + ctx.ProcPtr.Size;
 
                     /* bank change */
                     if (tmp > 0x2000)
@@ -334,7 +328,7 @@ namespace NesAsmSharp.Assembler.Processors
                 else
                 {
                     /* reloc proc */
-                    group = ctx.ProcPtr.Group;
+                    var group = ctx.ProcPtr.Group;
                     ctx.ProcPtr.Bank = ctx.Bank;
                     ctx.ProcPtr.Org += (group.Org - group.Base);
                 }
@@ -346,12 +340,8 @@ namespace NesAsmSharp.Assembler.Processors
             }
 
             /* remap proc symbols */
-            foreach (var symbol in ctx.HashTbl.Values)
+            foreach (var sym in ctx.HashTbl.Values)
             {
-                sym = symbol;
-
-                while (sym != null)
-                {
                     ctx.ProcPtr = sym.Proc;
 
                     /* remap addr */
@@ -361,28 +351,16 @@ namespace NesAsmSharp.Assembler.Processors
                         sym.Value += (ctx.ProcPtr.Org - ctx.ProcPtr.Base);
 
                         /* local symbols */
-                        if (sym.Local != null)
+                        sym.Local?.ForEach(lsym =>
                         {
-                            local = sym.Local;
-
-                            while (local != null)
+                            ctx.ProcPtr = lsym.Proc;
+                            if (lsym.Proc != null)
                             {
-                                ctx.ProcPtr = local.Proc;
-
-                                /* remap addr */
-                                if (local.Proc != null)
-                                {
-                                    local.Bank = ctx.ProcPtr.Bank;
-                                    local.Value += (ctx.ProcPtr.Org - ctx.ProcPtr.Base);
-                                }
-                                /* next */
-                                local = local.Next;
+                                lsym.Bank = ctx.ProcPtr.Bank;
+                                lsym.Value += ctx.ProcPtr.Org - ctx.ProcPtr.Base;
                             }
-                        }
+                        });
                     }
-                    /* next */
-                    sym = sym.Next;
-                }
             }
             /* reserve call bank */
             symPr.LablSet("_call_bank", ctx.MaxBank + 1);

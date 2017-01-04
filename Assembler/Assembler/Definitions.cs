@@ -345,13 +345,9 @@ namespace NesAsmSharp.Assembler
     public class NesAsmSymbol
     {
         /// <summary>
-        /// 次のローカルラベルへの参照(自身がローカルラベルの場合のみ使用)
+        /// このラベル配下のローカルラベルのリスト(自身がグローバルラベルの場合のみ使用)
         /// </summary>
-        public NesAsmSymbol Next { get; set; }
-        /// <summary>
-        /// ローカルラベルへの参照(自身がグローバルラベルの場合のみ使用)
-        /// </summary>
-        public NesAsmSymbol Local { get; set; }
+        public List<NesAsmSymbol> Local { get; set; }
         public NesAsmProc Proc { get; set; }
         public SymbolFlag Type { get; set; }
         public int Value { get; set; }
