@@ -430,9 +430,9 @@ namespace NesAsmSharp.Assembler.Processors
                 if ((name = ReadSymbolNameFromExpr(ctx.Expr)) == null) return (0);
 
                 /* an user function? */
-                if (funcPr.FuncLook(name) != 0)
+                if (funcPr.LookUpFuncTable(name) != 0)
                 {
-                    if (funcPr.FuncGetArgs() == 0) return (0);
+                    if (funcPr.GetFuncArgs() == 0) return (0);
 
                     ctx.ExprStack.Push(ctx.Expr);
                     ctx.FuncIdx++;

@@ -57,19 +57,6 @@ namespace NesAsmSharp.Assembler.Processors
         /// <param name="data"></param>
         /// <param name="len"></param>
         /// <returns></returns>
-        public uint CalcCRC(byte[] data, int len)
-        {
-            uint crc = 0;
-
-            for (var i = 0; i < len; i++)
-            {
-                crc = (crc << 8) ^ crcTable[(byte)(crc >> 16) ^ data[i]];
-            }
-
-            /* ok */
-            return (crc & 0xFFFFFF);
-        }
-
         public uint CalcCRC(IArrayPointer<byte> data, int len)
         {
             uint crc = 0;

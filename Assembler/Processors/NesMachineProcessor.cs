@@ -126,7 +126,7 @@ namespace NesAsmSharp.Assembler.Processors
             int i;
 
             /* define label */
-            symPr.LablDef(ctx.LocCnt, 1);
+            symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* output infos */
             ctx.DataLocCnt = ctx.LocCnt;

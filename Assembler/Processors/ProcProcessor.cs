@@ -29,7 +29,7 @@ namespace NesAsmSharp.Assembler.Processors
             int value;
 
             /* define label */
-            symPr.LablDef(ctx.LocCnt, 1);
+            symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* update location counter */
             ctx.DataLocCnt = ctx.LocCnt;
@@ -237,7 +237,7 @@ namespace NesAsmSharp.Assembler.Processors
             ctx.GLablPtr = ctx.LablPtr;
 
             /* define label */
-            symPr.LablDef(ctx.LocCnt, 1);
+            symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* output */
             if (ctx.Pass == PassFlag.LAST_PASS)

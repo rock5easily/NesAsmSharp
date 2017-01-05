@@ -73,7 +73,7 @@ namespace NesAsmSharp.Assembler.Processors
         }
 
         /* .endm pseudo */
-        public void Do_Endm(ref int ip)
+        public void DoEndm(ref int ip)
         {
             outPr.Error("Unexpected ENDM!");
             return;
@@ -215,7 +215,7 @@ namespace NesAsmSharp.Assembler.Processors
                         if (ctx.Pass == PassFlag.LAST_PASS)
                         {
                             outPr.PrintLn();
-                            outPr.ClearLn();
+                            outPr.ClearPrLnBuf();
                         }
 
                         /* read a new line */

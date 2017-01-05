@@ -183,9 +183,9 @@ namespace NesAsmSharp.Assembler.Processors
         /// checking for valid definition, etc.
         /// </summary>
         /// <param name="lval"></param>
-        /// <param name="flag"></param>
+        /// <param name="addrFlag">lvalをアドレス値に変換する場合はtrue</param>
         /// <returns></returns>
-        public int LablDef(int lval, int flag)
+        public int AssignValueToLablPtr(int lval, bool addrFlag)
         {
             char c;
 
@@ -193,11 +193,10 @@ namespace NesAsmSharp.Assembler.Processors
             if (ctx.LablPtr == null) return (0);
 
             /* adjust symbol address */
-            if (flag != 0)
+            if (addrFlag)
             {
                 lval = (lval & 0x1FFF) | (ctx.Page << 13);
             }
-            // printf(" value=%d lval=%d  flag=%d  bank=%d bank_limit=%d  lablptr->bank=%d bank_base=%d\n",lablptr->value,lval,flag,bank,bank_limit,lablptr->bank,bank_base);
 
             /* first pass */
             if (ctx.Pass == PassFlag.FIRST_PASS)
@@ -241,7 +240,7 @@ namespace NesAsmSharp.Assembler.Processors
             else
             {
                 if ((ctx.LablPtr.Value != lval) ||
-                   ((flag != 0) && (ctx.Bank < ctx.BankLimit) && (ctx.LablPtr.Bank != ctx.BankBase + ctx.Bank)))
+                   ((addrFlag) && (ctx.Bank < ctx.BankLimit) && (ctx.LablPtr.Bank != ctx.BankBase + ctx.Bank)))
                 {
                     outPr.FatalError("Internal error[1]!");
                     return (-1);
@@ -249,7 +248,7 @@ namespace NesAsmSharp.Assembler.Processors
             }
 
             /* update symbol data */
-            if (flag != 0)
+            if (addrFlag)
             {
                 if (ctx.Section == SectionType.S_CODE)
                 {

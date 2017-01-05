@@ -48,7 +48,7 @@ namespace NesAsmSharp.Assembler.Processors
                 }
 
                 /* install this new function in the hash table */
-                if (FuncInstall(ip, ctx.LablPtr.Name) == 0) return;
+                if (InstallFunc(ip, ctx.LablPtr.Name) == 0) return;
             }
         }
 
@@ -56,7 +56,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// search a function
         /// </summary>
         /// <returns></returns>
-        public int FuncLook(string name)
+        public int LookUpFuncTable(string name)
         {
             /* search the function in the hash table */
             if (ctx.FuncTbl.ContainsKey(name))
@@ -75,7 +75,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// </summary>
         /// <param name="ip"></param>
         /// <returns></returns>
-        public int FuncInstall(int ip, string name)
+        public int InstallFunc(int ip, string name)
         {
             /* mark the function name as reserved */
             ctx.LablPtr.Type = SymbolFlag.FUNC;
@@ -88,7 +88,7 @@ namespace NesAsmSharp.Assembler.Processors
             }
 
             /* extract function body */
-            if (FuncExtract(ip) == -1) return 0;
+            if (ExtractFunc(ip) == -1) return 0;
 
             /* allocate a new func struct */
             var func = new NesAsmFunc();
@@ -107,7 +107,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// </summary>
         /// <param name="ip"></param>
         /// <returns></returns>
-        public int FuncExtract(int ip)
+        public int ExtractFunc(int ip)
         {
             char c;
             int arg, max_arg;
@@ -165,7 +165,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// extract function args
         /// </summary>
         /// <returns></returns>
-        public int FuncGetArgs()
+        public int GetFuncArgs()
         {
             char c;
             int level;

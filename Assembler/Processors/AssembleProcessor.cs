@@ -180,7 +180,7 @@ namespace NesAsmSharp.Assembler.Processors
             if (ctx.MacroPtr != null)
             {
                 /* define label */
-                symPr.LablDef(ctx.LocCnt, 1);
+                symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
                 /* output location counter */
                 if (ctx.Pass == PassFlag.LAST_PASS)
@@ -213,7 +213,7 @@ namespace NesAsmSharp.Assembler.Processors
             flag = OpLook(ref ip);
             if (flag < 0)
             {
-                symPr.LablDef(ctx.LocCnt, 1);
+                symPr.AssignValueToLablPtr(ctx.LocCnt, true);
                 if (flag == -1)
                 {
                     outPr.Error("Unknown instruction!");
@@ -236,7 +236,7 @@ namespace NesAsmSharp.Assembler.Processors
             {
                 cmdPr.DoPseudo(ref ip);
             }
-            else if (symPr.LablDef(ctx.LocCnt, 1) == -1)
+            else if (symPr.AssignValueToLablPtr(ctx.LocCnt, true) == -1)
             {
                 return;
             }
@@ -398,7 +398,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// <param name="ip"></param>
         public void DoIf(ref int ip)
         {
-            symPr.LablDef(ctx.LocCnt, 1);
+            symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* get expression */
             ctx.IfExpr = true;
@@ -462,7 +462,7 @@ namespace NesAsmSharp.Assembler.Processors
         public void DoIfdef(ref int ip)
         {
             string name;
-            symPr.LablDef(ctx.LocCnt, 1);
+            symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* skip spaces */
             while (CharUtil.IsSpace(ctx.PrLnBuf[ip])) ip++;
