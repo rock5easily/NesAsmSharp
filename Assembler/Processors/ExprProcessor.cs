@@ -426,10 +426,11 @@ namespace NesAsmSharp.Assembler.Processors
             /* symbol */
             case ValueType.T_SYMBOL:
                 /* extract it */
-                if (GetSym() == 0) return (0);
+                string name;
+                if ((name = ReadSymbolNameFromExpr(ctx.Expr)) == null) return (0);
 
                 /* an user function? */
-                if (funcPr.FuncLook() != 0)
+                if (funcPr.FuncLook(name) != 0)
                 {
                     if (funcPr.FuncGetArgs() == 0) return (0);
 
@@ -441,7 +442,7 @@ namespace NesAsmSharp.Assembler.Processors
                 }
 
                 /* a predefined function? */
-                var op = CheckKeyword();
+                var op = CheckKeyword(name);
                 if (op != 0)
                 {
                     if (PushOp(op) == 0)
@@ -455,7 +456,6 @@ namespace NesAsmSharp.Assembler.Processors
                 }
 
                 /* search the symbol */
-                var name = ctx.Symbol.ToStringFromNullTerminated();
                 ctx.ExprLablPtr = symPr.LookUpSymbolTable(name, true);
 
                 /* check if undefined, if not get its value */
@@ -559,88 +559,85 @@ namespace NesAsmSharp.Assembler.Processors
         /// extract a symbol name from the input string
         /// </summary>
         /// <returns></returns>
-        public int GetSym()
+        public string ReadSymbolNameFromExpr(ArrayPointer<char> ptr)
         {
-            int i;
             char c;
+            char[] buf = new char[Definition.SBOLSZ + 1];
 
-            var valid = true;
-            i = 0;
+            var i = 0;
 
             /* get the symbol, stop to the first 'non symbol' char */
-            while (valid)
+            for (;;)
             {
-                c = ctx.Expr.Value;
+                c = ptr.Value;
                 // 最初の1文字目は数字ダメ
                 if (CharUtil.IsAlpha(c) || c == '_' || c == '.' || (char.IsDigit(c) && i >= 1))
                 {
                     if (i < Definition.SBOLSZ)
                     {
-                        ctx.Symbol[i++] = c;
+                        buf[i++] = c;
                     }
                     else
                     {
                         outPr.Error("Symbol name is too long!");
-                        i = 0;
-                        break;
+                        return null;
                     }
-                    ctx.Expr++;
+                    ptr++;
                 }
                 else
                 {
-                    valid = false;
+                    break;
                 }
             }
-
+            buf[i] = '\0';
+            var name = buf.ToStringFromNullTerminated();
             /* is it a reserved symbol? */
             if (i == 1)
             {
-                c = ctx.Symbol[0];
+                c = buf[0];
                 if (c == 'A' || c == 'X' || c == 'Y')
                 {
                     outPr.Error("Symbol is reserved (A, X or Y)!");
-                    i = 0;
+                    return null;
                 }
             }
 
             /* store symbol length */
-            ctx.Symbol[i] = '\0';
-            return i;
+            return name;
         }
 
+
+        private Dictionary<string, OperatorType> dicKeyToOperator = new Dictionary<string, OperatorType>()
+        {
+            [Keyword[0]] = OperatorType.OP_DEFINED,
+            [Keyword[1]] = OperatorType.OP_HIGH,
+            [Keyword[2]] = OperatorType.OP_LOW,
+            [Keyword[3]] = OperatorType.OP_PAGE,
+            [Keyword[4]] = OperatorType.OP_BANK,
+            [Keyword[7]] = OperatorType.OP_SIZEOF,
+        };
+
+        private Dictionary<string, OperatorType> dicKeyToPCEOperator = new Dictionary<string, OperatorType>()
+        {
+            [Keyword[5]] = OperatorType.OP_VRAM,
+            [Keyword[6]] = OperatorType.OP_PAL,
+        };
 
         /// <summary>
         /// verify if the current symbol is a reserved function
         /// </summary>
         /// <returns></returns>
-        public OperatorType CheckKeyword()
+        public OperatorType CheckKeyword(string name)
         {
             OperatorType op = 0;
-            var symupstr = ctx.Symbol.ToStringFromNullTerminated().ToUpper();
-
+            var upperName = name.ToUpper();
             /* check if its an assembler function */
-            if (symupstr == Keyword[0])
-                op = OperatorType.OP_DEFINED;
-            else if (symupstr == Keyword[1])
-                op = OperatorType.OP_HIGH;
-            else if (symupstr == Keyword[2])
-                op = OperatorType.OP_LOW;
-            else if (symupstr == Keyword[3])
-                op = OperatorType.OP_PAGE;
-            else if (symupstr == Keyword[4])
-                op = OperatorType.OP_BANK;
-            else if (symupstr == Keyword[7])
-                op = OperatorType.OP_SIZEOF;
-            else
+            op = dicKeyToOperator.GetValueOrDefault(upperName, (OperatorType)0);
+
+            if (op == 0 && ctx.Machine.Type == MachineType.MACHINE_PCE)
             {
-                if (ctx.Machine.Type == MachineType.MACHINE_PCE)
-                {
-                    /* PCE specific functions */
-                    if (symupstr == Keyword[5])
-                        op = OperatorType.OP_VRAM;
-                    else if (symupstr == Keyword[6])
-                        op = OperatorType.OP_PAL;
-                }
+                /* PCE specific functions */
+                op = dicKeyToPCEOperator.GetValueOrDefault(upperName, (OperatorType)0);
             }
 
             /* extra setup for functions that send back symbol infos */

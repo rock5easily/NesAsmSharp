@@ -55,7 +55,6 @@ namespace NesAsmSharp.Assembler
         /// 現在読んでいるソースの読んだ行数
         /// </summary>
         public int SrcLineNum { get; set; } // source line number counter
-        public char[] Symbol { get; private set; } // temporary symbol storage
         public int Undef { get; set; } // undefined symbol in expression flg
         public uint Value { get; set; } // operand field value
 
@@ -158,7 +157,6 @@ namespace NesAsmSharp.Assembler
             BankGLabl = new NesAsmSymbol[4, 256];
             PrLnBuf = new char[Definition.LAST_CH_POS + 4];
             TmpLnBuf = new char[Definition.LAST_CH_POS + 4];
-            Symbol = new char[Definition.SBOLSZ + 1];
 
             // macro.c
             MacroArg = new char[8, 10][];

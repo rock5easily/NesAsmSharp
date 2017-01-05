@@ -22,7 +22,7 @@ namespace NesAsmSharp.Assembler.Processors
             char c;
             int flag;
             int ip, i, j;       /* prlnbuf pointer */
-
+            string name;
             /* init variables */
             ctx.LablPtr = null;
             ctx.ContinuedLine = false;
@@ -34,7 +34,7 @@ namespace NesAsmSharp.Assembler.Processors
             if (ctx.InMacro)
             {
                 i = Definition.SFIELD;
-                if (symPr.ColSym(ref i) != 0)
+                if (!string.IsNullOrEmpty((name = symPr.ReadSymbolNameFromPrLnBuf(ref i))))
                 {
                     if (ctx.PrLnBuf[i] == ':') i++;
                 }
@@ -164,9 +164,8 @@ namespace NesAsmSharp.Assembler.Processors
             }
             else
             {
-                if (symPr.ColSym(ref i) != 0)
+                if (!string.IsNullOrEmpty((name = symPr.ReadSymbolNameFromPrLnBuf(ref i))))
                 {
-                    var name = ctx.Symbol.ToStringFromNullTerminated();
                     if ((ctx.LablPtr = symPr.LookUpSymbolTable(name, true)) == null) return;
                 }
                 if ((ctx.LablPtr != null) && (ctx.PrLnBuf[i] == ':')) i++;
@@ -462,20 +461,20 @@ namespace NesAsmSharp.Assembler.Processors
         /// <param name="ip"></param>
         public void DoIfdef(ref int ip)
         {
+            string name;
             symPr.LablDef(ctx.LocCnt, 1);
 
             /* skip spaces */
             while (CharUtil.IsSpace(ctx.PrLnBuf[ip])) ip++;
 
             /* get symbol */
-            if (symPr.ColSym(ref ip) == 0)
+            if (string.IsNullOrEmpty((name = symPr.ReadSymbolNameFromPrLnBuf(ref ip))))
             {
                 outPr.Error("Syntax error!");
                 return;
             }
             if (CheckEOL(ref ip) == 0) return;
 
-            var name = ctx.Symbol.ToStringFromNullTerminated();
             ctx.LablPtr = symPr.LookUpSymbolTable(name, false);
 
             /* check for '.if' stack overflow */

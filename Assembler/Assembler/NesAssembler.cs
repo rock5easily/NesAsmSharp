@@ -146,13 +146,13 @@ namespace NesAsmSharp.Assembler
 
             var symPr = ctx.GetProcessor<SymbolProcessor>();
             /* predefined symbols */
-            symPr.LablSet("MAGICKIT", 1);
-            symPr.LablSet("DEVELO", 0);
-            symPr.LablSet("CDROM", 0);
-            symPr.LablSet("_bss_end", 0);
-            symPr.LablSet("_bank_base", 0);
-            symPr.LablSet("_nb_bank", 1);
-            symPr.LablSet("_call_bank", 0);
+            symPr.SetReservedLabel("MAGICKIT", 1);
+            symPr.SetReservedLabel("DEVELO", 0);
+            symPr.SetReservedLabel("CDROM", 0);
+            symPr.SetReservedLabel("_bss_end", 0);
+            symPr.SetReservedLabel("_bank_base", 0);
+            symPr.SetReservedLabel("_nb_bank", 1);
+            symPr.SetReservedLabel("_call_bank", 0);
 
             /* init global variables */
             ctx.MaxZP = 0x01;
@@ -274,9 +274,9 @@ namespace NesAsmSharp.Assembler
                 /* update predefined symbols */
                 if (pass == PassFlag.FIRST_PASS)
                 {
-                    symPr.LablSet("_bss_end", (int)ctx.Machine.RamBase + ctx.MaxBSS);
-                    symPr.LablSet("_bank_base", ctx.BankBase);
-                    symPr.LablSet("_nb_bank", ctx.MaxBank + 1);
+                    symPr.SetReservedLabel("_bss_end", (int)ctx.Machine.RamBase + ctx.MaxBSS);
+                    symPr.SetReservedLabel("_bank_base", ctx.BankBase);
+                    symPr.SetReservedLabel("_nb_bank", ctx.MaxBank + 1);
                 }
 
                 /* adjust the symbol table for the develo or for cd-roms */
@@ -284,7 +284,7 @@ namespace NesAsmSharp.Assembler
                 {
                     if (opt.DeveloOpt || opt.MxOpt || opt.CdOpt || opt.ScdOpt)
                     {
-                        symPr.LablRemap();
+                        symPr.RemapAllLabels();
                     }
                 }
 

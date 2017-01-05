@@ -20,12 +20,11 @@ namespace NesAsmSharp.Assembler.Processors
         /// </summary>
         /// <param name="ip"></param>
         /// <returns></returns>
-        public int ColSym(ref int ip)
+        public string ReadSymbolNameFromPrLnBuf(ref int ip)
         {
-            bool err = false;
             int i = 0;
             char c;
-            var symbol = ctx.Symbol;
+            char[] buf = new char[Definition.SBOLSZ + 1];
 
             // get the symbol
             for (;;)
@@ -35,39 +34,36 @@ namespace NesAsmSharp.Assembler.Processors
                 if ((!CharUtil.IsAlNum(c)) && (c != '_') && (c != '.')) break;
                 if (i < Definition.SBOLSZ)
                 {
-                    symbol[i++] = c;
+                    buf[i++] = c;
                 }
                 else
                 {
                     outPr.FatalError("Symbol name is too long!");
-                    symbol[0] = '\0';
-                    return 0;
+                    return null;
                 }
                 ip++;
             }
+            buf[i] = '\0';
+            var name = buf.ToStringFromNullTerminated();
 
             // check if it's a reserved symbol
             if (i == 1)
             {
-                c = char.ToUpper(symbol[0]);
-                if (c == 'A' || c == 'X' || c == 'Y') err = true;
+                c = char.ToUpper(buf[0]);
+                if (c == 'A' || c == 'X' || c == 'Y')
+                {
+                    outPr.FatalError("Reserved symbol (A, X or Y)!");
+                    return null;
+                }
             }
-            else if (exprPr.CheckKeyword() != 0)
-            {
-                err = true;
-            }
-
-            // error
-            if (err)
+            else if (exprPr.CheckKeyword(name) != 0)
             {
                 outPr.FatalError("Reserved symbol!");
-                symbol[0] = '\0';
-                return 0;
+                return null;
             }
 
             // ok
-            symbol[i] = '\0';
-            return i;
+            return name;
         }
 
         /// <summary>
@@ -286,7 +282,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// </summary>
         /// <param name="name"></param>
         /// <param name="val"></param>
-        public void LablSet(string name, int val)
+        public void SetReservedLabel(string name, int val)
         {
             ctx.LablPtr = null;
 
@@ -313,7 +309,7 @@ namespace NesAsmSharp.Assembler.Processors
          * remap all the labels
          */
 
-        public void LablRemap()
+        public void RemapAllLabels()
         {
             /* browse the symbol table */
             foreach (var sym in ctx.HashTbl.Values)
