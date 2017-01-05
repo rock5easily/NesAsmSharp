@@ -73,6 +73,12 @@ namespace NesAsmSharp.Assembler
         public static readonly int INC_PATH_MAX = 10;
 
         /// <summary>
+        /// 入力ソースファイルのサイズ上限
+        /// INPUT_FILE_SIZE_MAX = 1024 * 1024
+        /// </summary>
+        public static readonly int INPUT_FILE_SIZE_MAX = 1024 * 1024;
+
+        /// <summary>
         /// セクション名
         /// </summary>
         public static readonly string[] SectionName = { "  ZP", " BSS", "CODE", "DATA" };
@@ -314,7 +320,7 @@ namespace NesAsmSharp.Assembler
         /// <summary>
         /// ソース読み込み用StreamReaderオブジェクト
         /// </summary>
-        public StreamReader Fp { get; set; }
+        public StringReader Fp { get; set; }
         /// <summary>
         /// 読んだ行数
         /// </summary>

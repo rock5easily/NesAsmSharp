@@ -222,13 +222,12 @@ namespace NesAsmSharp.Assembler.Processors
         }
 
         /// <summary>
-        /// open input files - up to 7 levels.
+        /// open input files - 1 up to 7 levels.
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
         public int OpenInputFile(string name)
         {
-            StreamReader sr;
             int i;
 
             /* only 7 nested input files */
@@ -252,12 +251,15 @@ namespace NesAsmSharp.Assembler.Processors
                 name += ".asm";
             }
 
+            var fInfo = new FileInfo(name);
+            name = fInfo.FullName;
+
             /* check if this file is already opened */
             if (ctx.InFileNum != 0)
             {
-                for (i = 1; i < ctx.InFileNum; i++)
+                for (i = 1; i <= ctx.InFileNum; i++)
                 {
-                    if (ctx.InputFile[i]?.Name == name)
+                    if (ctx.InputFile[i].Name == name)
                     {
                         outPr.Error("Repeated include file!");
                         return 1;
@@ -265,30 +267,47 @@ namespace NesAsmSharp.Assembler.Processors
                 }
             }
 
-            if (!File.Exists(name))
+            string fileText = null;
+            if (ctx.InFileTextCache.ContainsKey(name))
             {
-                outPr.Error($"'{name}' not found!");
-                return 1;
+                fileText = ctx.InFileTextCache[name];
             }
+            else
+            {
+                if (!fInfo.Exists)
+                {
+                    outPr.Error($"'{name}' not found!");
+                    return 1;
+                }
 
-            /* open the file */
-            try
-            {
-                sr = new StreamReader(name, opt.Encoding);
-            }
-            catch (Exception e)
-            {
-                return -1;
+                if (fInfo.Length > Definition.INPUT_FILE_SIZE_MAX)
+                {
+                    outPr.Error($"'{name}' too large! (Max size: 1MB)");
+                    return 1;
+                }
+
+                /* open the file */
+                try
+                {
+                    fileText = File.ReadAllText(name, opt.Encoding);
+                    ctx.InFileTextCache[name] = fileText;
+                }
+                catch (Exception e)
+                {
+                    return -1;
+                }
             }
 
             /* update input file infos */
-            ctx.InFp = sr;
+            ctx.InFp = new StringReader(fileText);
             ctx.SrcLineNum = 0;
             ctx.InFileNum++;
-            var inputInfo = new NesAsmInputInfo();
-            inputInfo.Fp = sr;
-            inputInfo.IfLevel = ctx.IfLevel;
-            inputInfo.Name = name;
+            var inputInfo = new NesAsmInputInfo()
+            {
+                Fp = ctx.InFp,
+                IfLevel = ctx.IfLevel,
+                Name = name,
+            };
             ctx.InputFile[ctx.InFileNum] = inputInfo;
 
             if ((ctx.Pass == PassFlag.LAST_PASS) && (opt.XListOpt) && (opt.ListLevel > 0))

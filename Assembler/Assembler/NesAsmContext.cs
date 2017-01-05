@@ -112,7 +112,12 @@ namespace NesAsmSharp.Assembler
         /// <summary>
         /// 現在のソース読み込み用StreamReaderオブジェクト
         /// </summary>
-        public StreamReader InFp { get; set; } // file pointers, input
+        public StringReader InFp { get; set; } // file pointers, input
+        /// <summary>
+        /// 読み込んだソースファイルのキャッシュ
+        /// key = ソースファイルの絶対パス, Value = ソースファイルのテキスト
+        /// </summary>
+        public Dictionary<string, string> InFileTextCache { get; private set; }
         /// <summary>
         /// .lstファイル書き込み用StreamWriterオブジェクト
         /// </summary>
@@ -198,6 +203,7 @@ namespace NesAsmSharp.Assembler
             // input.c
             InputFile = new NesAsmInputInfo[8];
             IncPath = new string[Definition.INC_PATH_MAX];
+            InFileTextCache = new Dictionary<string, string>();
 
             // pcx.c
             PcxArg = new uint[8];
