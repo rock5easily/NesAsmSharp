@@ -251,15 +251,24 @@ namespace NesAsmSharp.Assembler.Processors
                 name += ".asm";
             }
 
-            var fInfo = new FileInfo(name);
-            name = fInfo.FullName;
+            FileInfo fInfo = null;
+            try
+            {
+                fInfo = new FileInfo(name);
+            }
+            catch(Exception e)
+            {
+                outPr.Error($"Invalid file path '{name}'!");
+                return -1;
+            }
+            var fullName = fInfo.FullName;
 
             /* check if this file is already opened */
             if (ctx.InFileNum != 0)
             {
                 for (i = 1; i <= ctx.InFileNum; i++)
                 {
-                    if (ctx.InputFile[i].Name == name)
+                    if (ctx.InputFile[i].FullName == fullName)
                     {
                         outPr.Error("Repeated include file!");
                         return 1;
@@ -268,32 +277,33 @@ namespace NesAsmSharp.Assembler.Processors
             }
 
             string fileText = null;
-            if (ctx.InFileTextCache.ContainsKey(name))
+            if (ctx.InFileTextCache.ContainsKey(fullName))
             {
-                fileText = ctx.InFileTextCache[name];
+                fileText = ctx.InFileTextCache[fullName];
             }
             else
             {
                 if (!fInfo.Exists)
                 {
-                    outPr.Error($"'{name}' not found!");
+                    outPr.Error($"'{fullName}' not found!");
                     return 1;
                 }
 
                 if (fInfo.Length > Definition.INPUT_FILE_SIZE_MAX)
                 {
-                    outPr.Error($"'{name}' too large! (Max size: 1MB)");
+                    outPr.Error($"'{fullName}' too large! (Max size: 1MB)");
                     return 1;
                 }
 
                 /* open the file */
                 try
                 {
-                    fileText = File.ReadAllText(name, opt.Encoding);
-                    ctx.InFileTextCache[name] = fileText;
+                    fileText = File.ReadAllText(fullName, opt.Encoding);
+                    ctx.InFileTextCache[fullName] = fileText;
                 }
                 catch (Exception e)
                 {
+                    outPr.Error($"'{fullName}' read error!");
                     return -1;
                 }
             }
@@ -307,6 +317,7 @@ namespace NesAsmSharp.Assembler.Processors
                 Fp = ctx.InFp,
                 IfLevel = ctx.IfLevel,
                 Name = name,
+                FullName = fullName,
             };
             ctx.InputFile[ctx.InFileNum] = inputInfo;
 

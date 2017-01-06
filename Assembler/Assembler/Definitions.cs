@@ -330,6 +330,10 @@ namespace NesAsmSharp.Assembler
         /// ソースファイル名
         /// </summary>
         public string Name { get; set; }
+        /// <summary>
+        /// ソースファイルのフルパス
+        /// </summary>
+        public string FullName { get; set; }
     }
 
     public class NesAsmProc
