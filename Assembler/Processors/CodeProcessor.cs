@@ -742,7 +742,7 @@ namespace NesAsmSharp.Assembler.Processors
                 }
 
                 /* get value */
-                if (exprPr.Evaluate(ref ip, '\0') == 0) return (0);
+                if (exprPr.Evaluate(ref ip, (char)0) == 0) return (0);
 
                 // 2010/12/30 minachun add
                 /* restore preindexed */
@@ -911,7 +911,7 @@ namespace NesAsmSharp.Assembler.Processors
                     /* get tag */
                     tmp = ctx.Value;
 
-                    if (exprPr.Evaluate(ref ip, '\0') == 0) return (0);
+                    if (exprPr.Evaluate(ref ip, (char)0) == 0) return (0);
 
                     /* ok */
                     ctx.AutoTag = 1;
@@ -1079,7 +1079,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// <param name="buffer"></param>
         /// <param name="size"></param>
         /// <returns></returns>
-        public int GetString(ref int ip, out string result, int size)
+        public string ReadStringFromPrLnBuf(ref int ip, int size)
         {
             char c;
             int i;
@@ -1092,8 +1092,7 @@ namespace NesAsmSharp.Assembler.Processors
             if (ctx.PrLnBuf[ip++] != '\"')
             {
                 outPr.Error("Incorrect string syntax!");
-                result = null;
-                return (0);
+                return null;
             }
 
             /* get string */
@@ -1105,8 +1104,7 @@ namespace NesAsmSharp.Assembler.Processors
                 if (i >= size)
                 {
                     outPr.Error("String too long!");
-                    result = null;
-                    return (0);
+                    return null;
                 }
                 buf[i++] = c;
             }
@@ -1118,8 +1116,7 @@ namespace NesAsmSharp.Assembler.Processors
             while (CharUtil.IsSpace(ctx.PrLnBuf[ip])) ip++;
 
             /* ok */
-            result = buf.ToStringFromNullTerminated();
-            return (1);
+            return buf.ToStringFromNullTerminated();
         }
 
         // 2010/12/30 minachun add

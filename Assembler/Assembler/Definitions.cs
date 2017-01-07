@@ -84,6 +84,12 @@ namespace NesAsmSharp.Assembler
         public static readonly int STRING_ID_OFFSET = 0x0FFF0000;
 
         /// <summary>
+        /// 入力ソースファイルのサイズ上限
+        /// INPUT_FILE_SIZE_MAX = 1024 * 1024
+        /// </summary>
+        public static readonly int INPUT_FILE_SIZE_MAX = 1024 * 1024;
+
+        /// <summary>
         /// セクション名
         /// </summary>
         public static readonly string[] SectionName = { "  ZP", " BSS", "CODE", "DATA" };
@@ -330,7 +336,7 @@ namespace NesAsmSharp.Assembler
         /// <summary>
         /// ソース読み込み用StreamReaderオブジェクト
         /// </summary>
-        public StreamReader Fp { get; set; }
+        public StringReader Fp { get; set; }
         /// <summary>
         /// 読んだ行数
         /// </summary>
@@ -340,6 +346,10 @@ namespace NesAsmSharp.Assembler
         /// ソースファイル名
         /// </summary>
         public string Name { get; set; }
+        /// <summary>
+        /// ソースファイルのフルパス
+        /// </summary>
+        public string FullName { get; set; }
     }
 
     public class NesAsmProc
@@ -361,13 +371,9 @@ namespace NesAsmSharp.Assembler
     public class NesAsmSymbol
     {
         /// <summary>
-        /// 次のローカルラベルへの参照(自身がローカルラベルの場合のみ使用)
+        /// このラベル配下のローカルラベルのリスト(自身がグローバルラベルの場合のみ使用)
         /// </summary>
-        public NesAsmSymbol Next { get; set; }
-        /// <summary>
-        /// ローカルラベルへの参照(自身がグローバルラベルの場合のみ使用)
-        /// </summary>
-        public NesAsmSymbol Local { get; set; }
+        public List<NesAsmSymbol> Local { get; set; }
         public NesAsmProc Proc { get; set; }
         public SymbolFlag Type { get; set; }
         public int Value { get; set; }
@@ -378,7 +384,7 @@ namespace NesAsmSharp.Assembler
         public int Vram { get; set; }
         public int Pal { get; set; }
         public int RefCnt { get; set; }
-        public int Reserved { get; set; }
+        public bool Reserved { get; set; }
         public AsmDirective DataType { get; set; }
         public int DataSize { get; set; }
         public string Name { get; set; }

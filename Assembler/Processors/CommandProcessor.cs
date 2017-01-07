@@ -160,7 +160,7 @@ namespace NesAsmSharp.Assembler.Processors
             char c;
 
             /* define label */
-            symPr.LablDef(ctx.LocCnt, 1);
+            symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* output infos */
             ctx.DataLocCnt = ctx.LocCnt;
@@ -215,7 +215,7 @@ namespace NesAsmSharp.Assembler.Processors
                 else
                 {
                     /* get a byte */
-                    if (exprPr.Evaluate(ref ip, '\0') == 0) return;
+                    if (exprPr.Evaluate(ref ip, (char)0) == 0) return;
 
                     /* update location counter */
                     ctx.LocCnt++;
@@ -281,7 +281,7 @@ namespace NesAsmSharp.Assembler.Processors
             char c;
 
             /* define label */
-            symPr.LablDef(ctx.LocCnt, 1);
+            symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* output infos */
             ctx.DataLocCnt = ctx.LocCnt;
@@ -292,7 +292,7 @@ namespace NesAsmSharp.Assembler.Processors
             for (;;)
             {
                 /* get a word */
-                if (exprPr.Evaluate(ref ip, '\0') == 0)
+                if (exprPr.Evaluate(ref ip, (char)0) == 0)
                     return;
 
                 /* update location counter */
@@ -359,7 +359,7 @@ namespace NesAsmSharp.Assembler.Processors
             if (exprPr.Evaluate(ref ip, ';') == 0) return;
 
             /* assign value to the label */
-            symPr.LablDef((int)ctx.Value, 0);
+            symPr.AssignValueToLablPtr((int)ctx.Value, false);
 
             /* output line */
             if (ctx.Pass == PassFlag.LAST_PASS)
@@ -383,7 +383,7 @@ namespace NesAsmSharp.Assembler.Processors
             }
 
             /* define label */
-            symPr.LablDef(ctx.LocCnt, 1);
+            symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* get page index */
             if (exprPr.Evaluate(ref ip, ';') == 0) return;
@@ -460,7 +460,7 @@ namespace NesAsmSharp.Assembler.Processors
             ctx.LocCnt = ((int)ctx.Value & 0x1FFF);
 
             /* set label value if there was one */
-            symPr.LablDef(ctx.LocCnt, 1);
+            symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* output line on last pass */
             if (ctx.Pass == PassFlag.LAST_PASS)
@@ -486,10 +486,10 @@ namespace NesAsmSharp.Assembler.Processors
             }
 
             /* define label */
-            symPr.LablDef(ctx.LocCnt, 1);
+            symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* get bank index */
-            if (exprPr.Evaluate(ref ip, '\0') == 0) return;
+            if (exprPr.Evaluate(ref ip, (char)0) == 0) return;
             if (ctx.Value > ctx.BankLimit)
             {
                 outPr.Error("Bank index out of range!");
@@ -505,7 +505,7 @@ namespace NesAsmSharp.Assembler.Processors
             case ',':
                 /* get name */
                 ip++;
-                if (codePr.GetString(ref ip, out name, 63) == 0) return;
+                if ((name = codePr.ReadStringFromPrLnBuf(ref ip, 63)) == null) return;
 
                 /* check name validity */
                 if (ctx.BankName[ctx.Value].Length > 0)
@@ -562,7 +562,7 @@ namespace NesAsmSharp.Assembler.Processors
             long longsize;
 
             /* get file name */
-            if (codePr.GetString(ref ip, out fname, 127) == 0) return;
+            if ((fname = codePr.ReadStringFromPrLnBuf(ref ip, 127)) == null) return;
 
             /* get file extension */
             if ((p = fname.LastIndexOf('.')) >= 0)
@@ -586,7 +586,7 @@ namespace NesAsmSharp.Assembler.Processors
             }
 
             /* define label */
-            symPr.LablDef(ctx.LocCnt, 1);
+            symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* output */
             if (ctx.Pass == PassFlag.LAST_PASS)
@@ -747,8 +747,8 @@ namespace NesAsmSharp.Assembler.Processors
                             }
 
                             /* get count and address */
-                            cnt = htoi(line, 2, 2);
-                            addr = htoi(line, 4, 6);
+                            cnt = HexToInt(line, 2, 2);
+                            addr = HexToInt(line, 4, 6);
 
                             if ((line.Length < 12) || (cnt < 4) || (addr == -1))
                             {
@@ -769,7 +769,7 @@ namespace NesAsmSharp.Assembler.Processors
 
                             for (i = 0; i < cnt; i++)
                             {
-                                data = htoi(line, ptr, 2);
+                                data = HexToInt(line, ptr, 2);
                                 buffer[i] = (byte)data;
                                 chksum += data;
                                 ptr += 2;
@@ -782,7 +782,7 @@ namespace NesAsmSharp.Assembler.Processors
                             }
 
                             /* checksum test */
-                            data = htoi(line, ptr, 2);
+                            data = HexToInt(line, ptr, 2);
                             chksum = (~chksum) & 0xFF;
 
                             if (data != chksum)
@@ -810,7 +810,7 @@ namespace NesAsmSharp.Assembler.Processors
                                 if (flag == 0)
                                 {
                                     flag = 1;
-                                    symPr.LablDef(ctx.LocCnt, 1);
+                                    symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
                                     /* output */
                                     if (ctx.Pass == PassFlag.LAST_PASS)
@@ -845,7 +845,7 @@ namespace NesAsmSharp.Assembler.Processors
             /* define label */
             if (flag == 0)
             {
-                symPr.LablDef(ctx.LocCnt, 1);
+                symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
                 /* output */
                 if (ctx.Pass == PassFlag.LAST_PASS)
@@ -887,10 +887,10 @@ namespace NesAsmSharp.Assembler.Processors
             string fname;
 
             /* define label */
-            symPr.LablDef(ctx.LocCnt, 1);
+            symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* get file name */
-            if (codePr.GetString(ref ip, out fname, 127) == 0) return;
+            if ((fname = codePr.ReadStringFromPrLnBuf(ref ip, 127)) == null) return;
 
             /* open file */
             if (inPr.OpenInputFile(fname) == -1)
@@ -913,7 +913,7 @@ namespace NesAsmSharp.Assembler.Processors
         public void DoRsset(ref int ip)
         {
             /* define label */
-            symPr.LablDef(ctx.LocCnt, 1);
+            symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* get value */
             if (exprPr.Evaluate(ref ip, ';') == 0) return;
@@ -941,7 +941,7 @@ namespace NesAsmSharp.Assembler.Processors
         public void DoRs(ref int ip)
         {
             /* define label */
-            symPr.LablDef(ctx.RSBase, 0);
+            symPr.AssignValueToLablPtr(ctx.RSBase, false);
 
             /* get the number of bytes to reserve */
             if (exprPr.Evaluate(ref ip, ';') == 0) return;
@@ -971,7 +971,7 @@ namespace NesAsmSharp.Assembler.Processors
             int addr;
 
             /* define label */
-            symPr.LablDef(ctx.LocCnt, 1);
+            symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* get the number of bytes to reserve */
             if (exprPr.Evaluate(ref ip, ';') == 0) return;
@@ -1108,7 +1108,7 @@ namespace NesAsmSharp.Assembler.Processors
             int size;
 
             /* define label */
-            symPr.LablDef(ctx.LocCnt, 1);
+            symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* output */
             if (ctx.Pass == PassFlag.LAST_PASS)
@@ -1280,7 +1280,7 @@ namespace NesAsmSharp.Assembler.Processors
 
             /* get region name */
             string name;
-            if (codePr.GetString(ref ip, out name, Definition.REGION_NAME_MAX) == 0)
+            if ((name = codePr.ReadStringFromPrLnBuf(ref ip, Definition.REGION_NAME_MAX)) == null)
             {
                 outPr.Error("BEGINREGION: region name is required!");
                 return;
@@ -1328,7 +1328,7 @@ namespace NesAsmSharp.Assembler.Processors
 
             /* get region name */
             string name;
-            if (codePr.GetString(ref ip, out name, Definition.REGION_NAME_MAX) == 0)
+            if ((name = codePr.ReadStringFromPrLnBuf(ref ip, Definition.REGION_NAME_MAX)) == null)
             {
                 outPr.Error("ENDREGION: region name is required!");
                 return;
@@ -1372,7 +1372,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// <param name="startIndex"></param>
         /// <param name="nb"></param>
         /// <returns></returns>
-        public int htoi(char[] str, int startIndex, int nb)
+        public int HexToInt(char[] str, int startIndex, int nb)
         {
             char c;
             int val;
@@ -1425,7 +1425,7 @@ namespace NesAsmSharp.Assembler.Processors
                         new NesAsmOpecode("DS",           DoDs,             OpCodeFlag.PSEUDO, AsmDirective.P_DS,      0),
                         new NesAsmOpecode("ELSE",         asmPr.DoElse,     OpCodeFlag.PSEUDO, AsmDirective.P_ELSE,    0),
                         new NesAsmOpecode("ENDIF",        asmPr.DoEndif,    OpCodeFlag.PSEUDO, AsmDirective.P_ENDIF,   0),
-                        new NesAsmOpecode("ENDM",         macroPr.Do_Endm,  OpCodeFlag.PSEUDO, AsmDirective.P_ENDM,    0),
+                        new NesAsmOpecode("ENDM",         macroPr.DoEndm,  OpCodeFlag.PSEUDO, AsmDirective.P_ENDM,    0),
                         new NesAsmOpecode("ENDP",         procPr.DoEndp,    OpCodeFlag.PSEUDO, AsmDirective.P_ENDP,    (int)AsmDirective.P_PROC),
                         new NesAsmOpecode("ENDPROCGROUP", procPr.DoEndp,    OpCodeFlag.PSEUDO, AsmDirective.P_ENDPG,   (int)AsmDirective.P_PGROUP),
                         new NesAsmOpecode("EQU",          DoEqu,            OpCodeFlag.PSEUDO, AsmDirective.P_EQU,     0),
@@ -1466,7 +1466,7 @@ namespace NesAsmSharp.Assembler.Processors
                         new NesAsmOpecode(".DS",           DoDs,            OpCodeFlag.PSEUDO, AsmDirective.P_DS,      0),
                         new NesAsmOpecode(".ELSE",         asmPr.DoElse,    OpCodeFlag.PSEUDO, AsmDirective.P_ELSE,    0),
                         new NesAsmOpecode(".ENDIF",        asmPr.DoEndif,   OpCodeFlag.PSEUDO, AsmDirective.P_ENDIF,   0),
-                        new NesAsmOpecode(".ENDM",         macroPr.Do_Endm, OpCodeFlag.PSEUDO, AsmDirective.P_ENDM,    0),
+                        new NesAsmOpecode(".ENDM",         macroPr.DoEndm, OpCodeFlag.PSEUDO, AsmDirective.P_ENDM,    0),
                         new NesAsmOpecode(".ENDP",         procPr.DoEndp,   OpCodeFlag.PSEUDO, AsmDirective.P_ENDP,    (int)AsmDirective.P_PROC),
                         new NesAsmOpecode(".ENDPROCGROUP", procPr.DoEndp,   OpCodeFlag.PSEUDO, AsmDirective.P_ENDPG,   (int)AsmDirective.P_PGROUP),
                         new NesAsmOpecode(".EQU",          DoEqu,           OpCodeFlag.PSEUDO, AsmDirective.P_EQU,     0),

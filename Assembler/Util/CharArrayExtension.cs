@@ -25,12 +25,34 @@ namespace NesAsmSharp.Assembler.Util
             return new string(array, 0, i);
         }
 
+        /// <summary>
+        /// ヌル終端文字を考慮してchar配列のstartIndexから文字列に変換する
+        /// </summary>
+        /// <param name="array"></param>
+        /// <returns></returns>
         public static string ToStringFromNullTerminated(this char[] array, int startIndex)
         {
             int i;
             for (i = startIndex; i < array.Length; i++)
             {
                 if (array[i] == '\0') break;
+            }
+
+            if (i == startIndex) return "";
+            return new string(array, startIndex, i - startIndex);
+        }
+
+        /// <summary>
+        /// ヌル終端文字を考慮してchar配列のstartIndexから最大length文字だけ文字列に変換する
+        /// </summary>
+        /// <param name="array"></param>
+        /// <returns></returns>
+        public static string ToStringFromNullTerminated(this char[] array, int startIndex, int length)
+        {
+            int i;
+            for (i = startIndex; i < array.Length; i++)
+            {
+                if (array[i] == '\0'　|| i >= startIndex + length) break;
             }
 
             if (i == startIndex) return "";

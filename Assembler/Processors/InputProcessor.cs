@@ -120,7 +120,7 @@ namespace NesAsmSharp.Assembler.Processors
                                 if (c >= '1' && c <= '9')
                                 {
                                     n = 1;
-                                    num = ((int)macroPr.MacroGetArgType(ctx.MacroArg[ctx.MacroIdx, c - '1'].ToStringFromNullTerminated())).ToString();
+                                    num = ((int)macroPr.GetMacroArgType(ctx.MacroArg[ctx.MacroIdx, c - '1'].ToStringFromNullTerminated())).ToString();
                                     arg = num;
                                 }
                                 else
@@ -222,13 +222,12 @@ namespace NesAsmSharp.Assembler.Processors
         }
 
         /// <summary>
-        /// open input files - up to 7 levels.
+        /// open input files - 1 up to 7 levels.
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
         public int OpenInputFile(string name)
         {
-            StreamReader sr;
             int i;
 
             /* only 7 nested input files */
@@ -252,12 +251,24 @@ namespace NesAsmSharp.Assembler.Processors
                 name += ".asm";
             }
 
+            FileInfo fInfo = null;
+            try
+            {
+                fInfo = new FileInfo(name);
+            }
+            catch(Exception e)
+            {
+                outPr.Error($"Invalid file path '{name}'!");
+                return -1;
+            }
+            var fullName = fInfo.FullName;
+
             /* check if this file is already opened */
             if (ctx.InFileNum != 0)
             {
-                for (i = 1; i < ctx.InFileNum; i++)
+                for (i = 1; i <= ctx.InFileNum; i++)
                 {
-                    if (ctx.InputFile[i]?.Name == name)
+                    if (ctx.InputFile[i].FullName == fullName)
                     {
                         outPr.Error("Repeated include file!");
                         return 1;
@@ -265,30 +276,49 @@ namespace NesAsmSharp.Assembler.Processors
                 }
             }
 
-            if (!File.Exists(name))
+            string fileText = null;
+            if (ctx.InFileTextCache.ContainsKey(fullName))
             {
-                outPr.Error($"'{name}' not found!");
-                return 1;
+                fileText = ctx.InFileTextCache[fullName];
             }
+            else
+            {
+                if (!fInfo.Exists)
+                {
+                    outPr.Error($"'{fullName}' not found!");
+                    return 1;
+                }
 
-            /* open the file */
-            try
-            {
-                sr = new StreamReader(name, opt.Encoding);
-            }
-            catch (Exception e)
-            {
-                return -1;
+                if (fInfo.Length > Definition.INPUT_FILE_SIZE_MAX)
+                {
+                    outPr.Error($"'{fullName}' too large! (Max size: 1MB)");
+                    return 1;
+                }
+
+                /* open the file */
+                try
+                {
+                    fileText = File.ReadAllText(fullName, opt.Encoding);
+                    ctx.InFileTextCache[fullName] = fileText;
+                }
+                catch (Exception e)
+                {
+                    outPr.Error($"'{fullName}' read error!");
+                    return -1;
+                }
             }
 
             /* update input file infos */
-            ctx.InFp = sr;
+            ctx.InFp = new StringReader(fileText);
             ctx.SrcLineNum = 0;
             ctx.InFileNum++;
-            var inputInfo = new NesAsmInputInfo();
-            inputInfo.Fp = sr;
-            inputInfo.IfLevel = ctx.IfLevel;
-            inputInfo.Name = name;
+            var inputInfo = new NesAsmInputInfo()
+            {
+                Fp = ctx.InFp,
+                IfLevel = ctx.IfLevel,
+                Name = name,
+                FullName = fullName,
+            };
             ctx.InputFile[ctx.InFileNum] = inputInfo;
 
             if ((ctx.Pass == PassFlag.LAST_PASS) && (opt.XListOpt) && (opt.ListLevel > 0))

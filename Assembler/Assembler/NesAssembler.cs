@@ -113,12 +113,6 @@ namespace NesAsmSharp.Assembler
         private int Prepare()
         {
             var inPr = ctx.GetProcessor<InputProcessor>();
-            /* open the input file */
-            if (inPr.OpenInputFile(opt.InFName) != 0)
-            {
-                opt.StdOut.WriteLine("Can not open input file '{0}'!", opt.InFName);
-                return 1;
-            }
 
             var baseDir = Path.GetDirectoryName(opt.InFName);
             var baseFname = Path.GetFileNameWithoutExtension(opt.InFName);
@@ -156,13 +150,13 @@ namespace NesAsmSharp.Assembler
 
             var symPr = ctx.GetProcessor<SymbolProcessor>();
             /* predefined symbols */
-            symPr.LablSet("MAGICKIT", 1);
-            symPr.LablSet("DEVELO", 0);
-            symPr.LablSet("CDROM", 0);
-            symPr.LablSet("_bss_end", 0);
-            symPr.LablSet("_bank_base", 0);
-            symPr.LablSet("_nb_bank", 1);
-            symPr.LablSet("_call_bank", 0);
+            symPr.SetReservedLabel("MAGICKIT", 1);
+            symPr.SetReservedLabel("DEVELO", 0);
+            symPr.SetReservedLabel("CDROM", 0);
+            symPr.SetReservedLabel("_bss_end", 0);
+            symPr.SetReservedLabel("_bank_base", 0);
+            symPr.SetReservedLabel("_nb_bank", 1);
+            symPr.SetReservedLabel("_call_bank", 0);
 
             /* init global variables */
             ctx.MaxZP = 0x01;
@@ -184,13 +178,11 @@ namespace NesAsmSharp.Assembler
             var symPr = ctx.GetProcessor<SymbolProcessor>();
             var asmPr = ctx.GetProcessor<AssembleProcessor>();
 
-            PassFlag pass;
             int ram_bank;
 
             /* assemble */
-            for (pass = PassFlag.FIRST_PASS; pass <= PassFlag.LAST_PASS; pass++)
+            for (ctx.Pass = PassFlag.FIRST_PASS; ctx.Pass <= PassFlag.LAST_PASS; ctx.Pass++)
             {
-                ctx.Pass = pass;
                 ctx.InFileError = -1;
                 ctx.Page = 7;
                 ctx.Bank = 0;
@@ -239,8 +231,15 @@ namespace NesAsmSharp.Assembler
                 ctx.BankPage[(int)SectionType.S_DATA, 0x00] = 0x07;
                 ctx.BankLocCnt[(int)SectionType.S_DATA, 0x00] = 0x0000;
 
+                /* open the input file */
+                if (inPr.OpenInputFile(opt.InFName) != 0)
+                {
+                    opt.StdOut.WriteLine("Can not open input file '{0}'!", opt.InFName);
+                    return 1;
+                }
+
                 /* pass message */
-                opt.StdOut.WriteLine("pass {0}", (int)(pass + 1));
+                opt.StdOut.WriteLine("pass {0}", (int)(ctx.Pass + 1));
 
                 /* assemble */
                 while (inPr.ReadLine() != -1)
@@ -276,7 +275,7 @@ namespace NesAsmSharp.Assembler
                 }
 
                 /* relocate procs */
-                if (pass == PassFlag.FIRST_PASS)
+                if (ctx.Pass == PassFlag.FIRST_PASS)
                 {
                     procPr.ProcReloc();
                 }
@@ -289,33 +288,30 @@ namespace NesAsmSharp.Assembler
                 }
 
                 /* adjust bank base */
-                if (pass == PassFlag.FIRST_PASS)
+                if (ctx.Pass == PassFlag.FIRST_PASS)
                 {
                     ctx.BankBase = CalcBankBase();
                 }
 
                 /* update predefined symbols */
-                if (pass == PassFlag.FIRST_PASS)
+                if (ctx.Pass == PassFlag.FIRST_PASS)
                 {
-                    symPr.LablSet("_bss_end", (int)ctx.Machine.RamBase + ctx.MaxBSS);
-                    symPr.LablSet("_bank_base", ctx.BankBase);
-                    symPr.LablSet("_nb_bank", ctx.MaxBank + 1);
+                    symPr.SetReservedLabel("_bss_end", (int)ctx.Machine.RamBase + ctx.MaxBSS);
+                    symPr.SetReservedLabel("_bank_base", ctx.BankBase);
+                    symPr.SetReservedLabel("_nb_bank", ctx.MaxBank + 1);
                 }
 
                 /* adjust the symbol table for the develo or for cd-roms */
-                if (pass == PassFlag.FIRST_PASS)
+                if (ctx.Pass == PassFlag.FIRST_PASS)
                 {
                     if (opt.DeveloOpt || opt.MxOpt || opt.CdOpt || opt.ScdOpt)
                     {
-                        symPr.LablRemap();
+                        symPr.RemapAllLabels();
                     }
                 }
 
-                /* rewind input file */
-                ctx.InFp.BaseStream.Seek(0, SeekOrigin.Begin);
-
                 // check regions
-                if (pass == PassFlag.FIRST_PASS)
+                if (ctx.Pass == PassFlag.FIRST_PASS)
                 {
                     if (ctx.RegionTbl.Count > 0)
                     {
@@ -339,8 +335,10 @@ namespace NesAsmSharp.Assembler
                     }
                 }
 
-                /* open the listing file */
-                if (pass == PassFlag.FIRST_PASS)
+
+                // open the listing file
+                // FIRST PASS完了時点でopt.XListOptがtrueに変わっているかをチェック
+                if (ctx.Pass == PassFlag.FIRST_PASS)
                 {
                     if (opt.XListOpt && opt.ListLevel > 0)
                     {
@@ -367,6 +365,11 @@ namespace NesAsmSharp.Assembler
                         ctx.LstFp.WriteLine("#[1]   {0}", ctx.InputFile[1].Name);
                     }
                 }
+
+                // close input file
+                ctx.InFp.Close();
+                ctx.InFp = null;
+                ctx.InputFile[ctx.InFileNum--] = null;
             }
 
             return ctx.ErrCnt;

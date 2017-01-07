@@ -16,6 +16,7 @@ namespace NesAsmSharp.Assembler.Processors
         /* .macro pseudo */
         public void DoMacro(ref int ip)
         {
+            string name = null;
             if (ctx.Pass == PassFlag.LAST_PASS)
             {
                 outPr.PrintLn();
@@ -31,32 +32,33 @@ namespace NesAsmSharp.Assembler.Processors
                 if (ctx.LablPtr == null)
                 {
                     /* skip spaces */
-                    while (CharUtil.IsSpace(ctx.PrLnBuf[ip]))
-                        ip++;
+                    while (CharUtil.IsSpace(ctx.PrLnBuf[ip])) ip++;
 
                     /* search a label after the .macro */
-                    if (symPr.ColSym(ref ip) == 0)
+                    if ((name = symPr.ReadSymbolNameFromPrLnBuf(ref ip)) == null)
                     {
                         outPr.Error("No name for this macro!");
                         return;
                     }
 
                     /* put the macro name in the symbol table */
-                    if ((ctx.LablPtr = symPr.STLook(1)) == null)
-                        return;
+                    if ((ctx.LablPtr = symPr.LookUpSymbolTable(name, true)) == null) return;
                 }
-                if (ctx.LablPtr.RefCnt != 0)
+                else
+                {
+                    name = ctx.LablPtr.Name;
+                }
+
+                if (ctx.LablPtr.RefCnt > 0)
                 {
                     switch (ctx.LablPtr.Type)
                     {
                     case SymbolFlag.MACRO:
                         outPr.FatalError("Macro already defined!");
                         return;
-
                     case SymbolFlag.FUNC:
                         outPr.FatalError("Symbol already used by a function!");
                         return;
-
                     default:
                         outPr.FatalError("Symbol already used by a label!");
                         return;
@@ -65,21 +67,20 @@ namespace NesAsmSharp.Assembler.Processors
                 if (asmPr.CheckEOL(ref ip) == 0) return;
 
                 /* install this new macro in the hash table */
-                if (MacroInstall() == 0) return;
+                if (InstallMacro(name) == 0) return;
             }
             ctx.InMacro = true;
         }
 
         /* .endm pseudo */
-        public void Do_Endm(ref int ip)
+        public void DoEndm(ref int ip)
         {
             outPr.Error("Unexpected ENDM!");
             return;
         }
 
         /* search a macro in the hash table */
-
-        public NesAsmMacro MacroLook(ref int ip)
+        public NesAsmMacro LookUpMacroTable(ref int ip)
         {
             char c;
             char[] buf = new char[Definition.MACROSZ + 1];
@@ -106,7 +107,7 @@ namespace NesAsmSharp.Assembler.Processors
         }
 
         /* extract macro arguments */
-        public int MacroGetArgs(int ip)
+        public int GetMacroArgs(int ip)
         {
             char c, t;
             int i, j, f, arg;
@@ -213,7 +214,7 @@ namespace NesAsmSharp.Assembler.Processors
                         if (ctx.Pass == PassFlag.LAST_PASS)
                         {
                             outPr.PrintLn();
-                            outPr.ClearLn();
+                            outPr.ClearPrLnBuf();
                         }
 
                         /* read a new line */
@@ -315,15 +316,13 @@ namespace NesAsmSharp.Assembler.Processors
 
         /* install a macro in the hash table */
 
-        public int MacroInstall()
+        public int InstallMacro(string name)
         {
-            var symstr = ctx.Symbol.ToStringFromNullTerminated();
-
             /* mark the macro name as reserved */
             ctx.LablPtr.Type = SymbolFlag.MACRO;
 
             /* check macro name syntax */
-            if (symstr.Contains("."))
+            if (name.Contains("."))
             {
                 outPr.Error("Invalid macro name!");
                 return 0;
@@ -332,8 +331,8 @@ namespace NesAsmSharp.Assembler.Processors
             /* allocate a macro struct */
             var mptr = new NesAsmMacro();
             /* initialize it */
-            mptr.Name = symstr;
-            ctx.MacroTbl[symstr] = mptr;
+            mptr.Name = name;
+            ctx.MacroTbl[name] = mptr;
             ctx.MacroPtr = mptr;
             ctx.MacroLinePtr = null;
 
@@ -342,7 +341,7 @@ namespace NesAsmSharp.Assembler.Processors
         }
 
         /* send back the addressing mode of a macro arg */
-        public MacroArgumentType MacroGetArgType(string argstr)
+        public MacroArgumentType GetMacroArgType(string argstr)
         {
             NesAsmSymbol sym;
             char c = '\0';
@@ -396,9 +395,8 @@ namespace NesAsmSharp.Assembler.Processors
                     }
                     else
                     {
-                        ctx.Symbol.CopyAsNullTerminated(arg, i);
-
-                        if ((sym = symPr.STLook(0)) == null)
+                        var name = arg.ToStringFromNullTerminated(0, i);
+                        if ((sym = symPr.LookUpSymbolTable(name, false)) == null)
                         {
                             return (MacroArgumentType.ARG_LABEL);
                         }
