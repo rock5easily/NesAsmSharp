@@ -108,7 +108,7 @@ namespace NesAsmSharp.Assembler.Processors
             else
             {
                 /* search symbol */
-                sym = ctx.HashTbl.GetValueOrDefault(name);
+                sym = ctx.GLablHashTbl.GetValueOrDefault(name);
 
                 /* new symbol */
                 if (sym == null)
@@ -171,7 +171,7 @@ namespace NesAsmSharp.Assembler.Processors
             else
             {
                 /* global */
-                ctx.HashTbl[name] = sym;
+                ctx.GLablHashTbl[name] = sym;
             }
 
             /* ok */
@@ -239,10 +239,14 @@ namespace NesAsmSharp.Assembler.Processors
             /* second pass */
             else
             {
-                if ((ctx.LablPtr.Value != lval) ||
-                   ((addrFlag) && (ctx.Bank < ctx.BankLimit) && (ctx.LablPtr.Bank != ctx.BankBase + ctx.Bank)))
+                if (ctx.LablPtr.Value != lval)
                 {
-                    outPr.FatalError("Internal error[1]!");
+                    outPr.FatalError($"Label '{ctx.LablPtr.Name}' value mismatch error! (Pass1=${ctx.LablPtr.Value:X}, Pass2=${lval:X})");
+                    return (-1);
+                }
+                else if ((addrFlag) && (ctx.Bank < ctx.BankLimit) && (ctx.LablPtr.Bank != ctx.BankBase + ctx.Bank))
+                {
+                    outPr.FatalError($"Label '{ctx.LablPtr.Name}' bank mismatch error! (Pass1=${ctx.LablPtr.Bank:X}, Pass2=${ctx.BankBase + ctx.Bank:X})");
                     return (-1);
                 }
             }
@@ -311,7 +315,7 @@ namespace NesAsmSharp.Assembler.Processors
         public void RemapAllLabels()
         {
             /* browse the symbol table */
-            foreach (var sym in ctx.HashTbl.Values)
+            foreach (var sym in ctx.GLablHashTbl.Values)
             {
                 sym.Local?.ForEach(lsym =>
                 {

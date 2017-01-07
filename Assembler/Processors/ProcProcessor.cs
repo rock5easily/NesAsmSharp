@@ -341,7 +341,7 @@ namespace NesAsmSharp.Assembler.Processors
             }
 
             /* remap proc symbols */
-            foreach (var sym in ctx.HashTbl.Values)
+            foreach (var sym in ctx.GLablHashTbl.Values)
             {
                     ctx.ProcPtr = sym.Proc;
 

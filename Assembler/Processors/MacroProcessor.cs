@@ -49,7 +49,7 @@ namespace NesAsmSharp.Assembler.Processors
                     name = ctx.LablPtr.Name;
                 }
 
-                if (ctx.LablPtr.RefCnt != 0)
+                if (ctx.LablPtr.RefCnt > 0)
                 {
                     switch (ctx.LablPtr.Type)
                     {

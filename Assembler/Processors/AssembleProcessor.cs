@@ -415,6 +415,12 @@ namespace NesAsmSharp.Assembler.Processors
                 outPr.FatalError("Too many nested IF/ENDIF!");
                 return;
             }
+
+            if (ctx.Undef > 0)
+            {
+                outPr.Warning("Warning: Undefined label in IF condition.");
+            }
+
             ctx.InIf = true;
             ctx.IfLevel++;
             ctx.IfState[ctx.IfLevel] = !ctx.SkipLines;
