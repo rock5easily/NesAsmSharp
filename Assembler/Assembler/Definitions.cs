@@ -190,6 +190,7 @@ namespace NesAsmSharp.Assembler
         P_CATBANK = 51, // .catbank
         P_BEGINREGION = 52, // .beginregion
         P_ENDREGION = 53, // .endregion
+        P_PUBLIC = 54, // .public
     }
 
     /* symbol flags */
@@ -210,6 +211,15 @@ namespace NesAsmSharp.Assembler
     {
         GLOBAL,
         LOCAL
+    }
+
+    /// <summary>
+    /// シンボルのアクセスレベル
+    /// </summary>
+    public enum AccessLevelType
+    {
+        PRIVATE,
+        PUBLIC
     }
 
     /* operation code flags */
@@ -376,6 +386,7 @@ namespace NesAsmSharp.Assembler
         public List<NesAsmSymbol> Local { get; set; }
         public NesAsmProc Proc { get; set; }
         public SymbolFlag Type { get; set; }
+        public AccessLevelType AccessLevel { get; set; }
         public int Value { get; set; }
         public int Bank { get; set; }
         public int Page { get; set; }

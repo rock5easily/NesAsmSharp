@@ -401,13 +401,10 @@ namespace NesAsmSharp.Assembler.Processors
             symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* get expression */
-            ctx.IfExpr = true;
             if (exprPr.Evaluate(ref ip, ';') == 0)
             {
-                ctx.IfExpr = false;
                 return;
             }
-            ctx.IfExpr = false;
 
             /* check for '.if' stack overflow */
             if (ctx.IfLevel == ctx.IfState.Length - 1)
@@ -474,14 +471,21 @@ namespace NesAsmSharp.Assembler.Processors
             while (CharUtil.IsSpace(ctx.PrLnBuf[ip])) ip++;
 
             /* get symbol */
-            if (string.IsNullOrEmpty((name = symPr.ReadSymbolNameFromPrLnBuf(ref ip))))
+            if (string.IsNullOrEmpty((name = symPr.ReadSymbolNameFromPrLnBuf(ref ip, true))))
             {
                 outPr.Error("Syntax error!");
                 return;
             }
             if (CheckEOL(ref ip) == 0) return;
 
-            ctx.LablPtr = symPr.LookUpSymbolTable(name, false);
+            ctx.IfExpr = true;
+            ctx.LablPtr = symPr.LookUpSymbolTable(name, true);
+            ctx.IfExpr = false;
+            if (ctx.LablPtr != null && (ctx.LablPtr.Type == SymbolFlag.IFUNDEF || ctx.LablPtr.Type == SymbolFlag.UNDEF))
+            {
+                ctx.LablPtr.Type = SymbolFlag.IFUNDEF;
+                ctx.LablPtr = null;
+            }
 
             /* check for '.if' stack overflow */
             if (ctx.IfLevel == ctx.IfState.Length - 1)

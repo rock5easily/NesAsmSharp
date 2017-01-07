@@ -421,7 +421,7 @@ namespace NesAsmSharp.Assembler.Processors
             case ValueType.T_SYMBOL:
                 /* extract it */
                 string name;
-                if ((name = ReadSymbolNameFromExpr(ctx.Expr)) == null) return (0);
+                if ((name = ReadSymbolNameFromExpr(ctx.Expr, true)) == null) return (0);
 
                 /* an user function? */
                 if (funcPr.LookUpFuncTable(name) != 0)
@@ -558,50 +558,76 @@ namespace NesAsmSharp.Assembler.Processors
         /// extract a symbol name from the input string
         /// </summary>
         /// <returns></returns>
-        public string ReadSymbolNameFromExpr(ArrayPointer<char> ptr)
+        public string ReadSymbolNameFromExpr(ArrayPointer<char> ptr, bool midDotAllowed = false)
         {
+            int i = 0;
             char c;
-            char[] buf = new char[Definition.SBOLSZ + 1];
+            char[] buf = new char[ctx.PrLnBuf.Length];
 
-            var i = 0;
-
-            /* get the symbol, stop to the first 'non symbol' char */
+            // get the symbol
             for (;;)
             {
                 c = ptr.Value;
-                // 最初の1文字目は数字ダメ
-                if (CharUtil.IsAlpha(c) || c == '_' || c == '.' || (char.IsDigit(c) && i >= 1))
+                if (char.IsDigit(c) && (i == 0)) break;
+                if ((!CharUtil.IsAlNum(c)) && (c != '_') && (c != '.')) break;
+                if (ptr.Current < ptr.Array.Length - 1)
                 {
-                    if (i < Definition.SBOLSZ)
-                    {
-                        buf[i++] = c;
-                    }
-                    else
-                    {
-                        outPr.Error("Symbol name is too long!");
-                        return null;
-                    }
-                    ptr++;
+                    buf[i++] = c;
                 }
                 else
                 {
-                    break;
+                    outPr.FatalError("Line buffer over flow!");
+                    return null;
                 }
+                ptr++;
             }
             buf[i] = '\0';
             var name = buf.ToStringFromNullTerminated();
-            /* is it a reserved symbol? */
-            if (i == 1)
+            var names = name.Split('.');
+            string gName = null;
+            if (midDotAllowed)
             {
-                c = buf[0];
+                if (names.Length > 2 || (names.Length == 2 && names[1] == ""))
+                {
+                    outPr.FatalError("Invalid symbol name!");
+                    return null;
+                }
+                gName = names[0];
+                var lName = (names.Length == 2) ? "." + names[1] : "";
+
+                if (gName.Length > Definition.SBOLSZ || lName.Length > Definition.SBOLSZ)
+                {
+                    outPr.FatalError("Symbol name is too long!");
+                    return null;
+                }
+            }
+            else
+            {
+                if (names.Length > 2 || (names.Length == 2 && names[0] != ""))
+                {
+                    outPr.FatalError("Invalid symbol name!");
+                    return null;
+                }
+                if (name.Length > Definition.SBOLSZ)
+                {
+                    outPr.FatalError("Symbol name is too long!");
+                    return null;
+                }
+                gName = names[0];
+            }
+
+            // check if it's a reserved symbol
+            if (gName.Length == 1)
+            {
+                c = char.ToUpper(gName[0]);
                 if (c == 'A' || c == 'X' || c == 'Y')
                 {
-                    outPr.Error("Symbol is reserved (A, X or Y)!");
+                    outPr.FatalError("Reserved symbol (A, X or Y)!");
                     return null;
                 }
             }
 
-            /* store symbol length */
+            // ok
             return name;
         }
 
