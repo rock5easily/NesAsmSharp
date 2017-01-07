@@ -38,7 +38,7 @@ namespace NesAsmSharp.Assembler
         public int ErrCnt { get; set; } // error counter
         public NesAsmMachine Machine { get; set; }
         public Dictionary<string, NesAsmOpecode> InstTbl { get; private set; } // instructions hash table
-        public Dictionary<string, NesAsmSymbol> HashTbl { get; private set; } // label hash table
+        public Dictionary<string, NesAsmSymbol> GLablHashTbl { get; private set; } // label hash table
         public NesAsmSymbol LablPtr { get; set; } // label pointer into symbol table
         public NesAsmSymbol GLablPtr { get; set; } // pointer to the latest defined global label
         public NesAsmSymbol LastLabl { get; set; } // last label we have seen
@@ -55,7 +55,6 @@ namespace NesAsmSharp.Assembler
         /// 現在読んでいるソースの読んだ行数
         /// </summary>
         public int SrcLineNum { get; set; } // source line number counter
-        public char[] Symbol { get; private set; } // temporary symbol storage
         public int Undef { get; set; } // undefined symbol in expression flg
         public uint Value { get; set; } // operand field value
 
@@ -113,7 +112,12 @@ namespace NesAsmSharp.Assembler
         /// <summary>
         /// 現在のソース読み込み用StreamReaderオブジェクト
         /// </summary>
-        public StreamReader InFp { get; set; } // file pointers, input
+        public StringReader InFp { get; set; } // file pointers, input
+        /// <summary>
+        /// 読み込んだソースファイルのキャッシュ
+        /// key = ソースファイルの絶対パス, Value = ソースファイルのテキスト
+        /// </summary>
+        public Dictionary<string, string> InFileTextCache { get; private set; }
         /// <summary>
         /// .lstファイル書き込み用StreamWriterオブジェクト
         /// </summary>
@@ -154,11 +158,10 @@ namespace NesAsmSharp.Assembler
             BankPage = new int[4, 256];
             SectionBank = new int[4];
             InstTbl = new Dictionary<string, NesAsmOpecode>();
-            HashTbl = new Dictionary<string, NesAsmSymbol>();
+            GLablHashTbl = new Dictionary<string, NesAsmSymbol>();
             BankGLabl = new NesAsmSymbol[4, 256];
             PrLnBuf = new char[Definition.LAST_CH_POS + 4];
             TmpLnBuf = new char[Definition.LAST_CH_POS + 4];
-            Symbol = new char[Definition.SBOLSZ + 1];
 
             // macro.c
             MacroArg = new char[8, 10][];
@@ -200,6 +203,7 @@ namespace NesAsmSharp.Assembler
             // input.c
             InputFile = new NesAsmInputInfo[8];
             IncPath = new string[Definition.INC_PATH_MAX];
+            InFileTextCache = new Dictionary<string, string>();
 
             // pcx.c
             PcxArg = new uint[8];

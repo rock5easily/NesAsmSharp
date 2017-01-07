@@ -22,7 +22,7 @@ namespace NesAsmSharp.Assembler.Processors
             char c;
             int flag;
             int ip, i, j;       /* prlnbuf pointer */
-
+            string name;
             /* init variables */
             ctx.LablPtr = null;
             ctx.ContinuedLine = false;
@@ -34,7 +34,7 @@ namespace NesAsmSharp.Assembler.Processors
             if (ctx.InMacro)
             {
                 i = Definition.SFIELD;
-                if (symPr.ColSym(ref i) != 0)
+                if (!string.IsNullOrEmpty((name = symPr.ReadSymbolNameFromPrLnBuf(ref i))))
                 {
                     if (ctx.PrLnBuf[i] == ':') i++;
                 }
@@ -164,9 +164,9 @@ namespace NesAsmSharp.Assembler.Processors
             }
             else
             {
-                if (symPr.ColSym(ref i) != 0)
+                if (!string.IsNullOrEmpty((name = symPr.ReadSymbolNameFromPrLnBuf(ref i))))
                 {
-                    if ((ctx.LablPtr = symPr.STLook(1)) == null) return;
+                    if ((ctx.LablPtr = symPr.LookUpSymbolTable(name, true)) == null) return;
                 }
                 if ((ctx.LablPtr != null) && (ctx.PrLnBuf[i] == ':')) i++;
             }
@@ -176,11 +176,11 @@ namespace NesAsmSharp.Assembler.Processors
 
             /* is it a macro? */
             ip = i;
-            ctx.MacroPtr = macroPr.MacroLook(ref ip);
+            ctx.MacroPtr = macroPr.LookUpMacroTable(ref ip);
             if (ctx.MacroPtr != null)
             {
                 /* define label */
-                symPr.LablDef(ctx.LocCnt, 1);
+                symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
                 /* output location counter */
                 if (ctx.Pass == PassFlag.LAST_PASS)
@@ -192,7 +192,7 @@ namespace NesAsmSharp.Assembler.Processors
                 }
 
                 /* get macro args */
-                if (macroPr.MacroGetArgs(ip) == 0) return;
+                if (macroPr.GetMacroArgs(ip) == 0) return;
 
                 /* output line */
                 if (ctx.Pass == PassFlag.LAST_PASS)
@@ -213,7 +213,7 @@ namespace NesAsmSharp.Assembler.Processors
             flag = OpLook(ref ip);
             if (flag < 0)
             {
-                symPr.LablDef(ctx.LocCnt, 1);
+                symPr.AssignValueToLablPtr(ctx.LocCnt, true);
                 if (flag == -1)
                 {
                     outPr.Error("Unknown instruction!");
@@ -236,7 +236,7 @@ namespace NesAsmSharp.Assembler.Processors
             {
                 cmdPr.DoPseudo(ref ip);
             }
-            else if (symPr.LablDef(ctx.LocCnt, 1) == -1)
+            else if (symPr.AssignValueToLablPtr(ctx.LocCnt, true) == -1)
             {
                 return;
             }
@@ -398,7 +398,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// <param name="ip"></param>
         public void DoIf(ref int ip)
         {
-            symPr.LablDef(ctx.LocCnt, 1);
+            symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* get expression */
             ctx.IfExpr = true;
@@ -415,6 +415,12 @@ namespace NesAsmSharp.Assembler.Processors
                 outPr.FatalError("Too many nested IF/ENDIF!");
                 return;
             }
+
+            if (ctx.Undef > 0)
+            {
+                outPr.Warning("Warning: Undefined label in IF condition.");
+            }
+
             ctx.InIf = true;
             ctx.IfLevel++;
             ctx.IfState[ctx.IfLevel] = !ctx.SkipLines;
@@ -461,20 +467,21 @@ namespace NesAsmSharp.Assembler.Processors
         /// <param name="ip"></param>
         public void DoIfdef(ref int ip)
         {
-            symPr.LablDef(ctx.LocCnt, 1);
+            string name;
+            symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* skip spaces */
             while (CharUtil.IsSpace(ctx.PrLnBuf[ip])) ip++;
 
             /* get symbol */
-            if (symPr.ColSym(ref ip) == 0)
+            if (string.IsNullOrEmpty((name = symPr.ReadSymbolNameFromPrLnBuf(ref ip))))
             {
                 outPr.Error("Syntax error!");
                 return;
             }
             if (CheckEOL(ref ip) == 0) return;
 
-            ctx.LablPtr = symPr.STLook(0);
+            ctx.LablPtr = symPr.LookUpSymbolTable(name, false);
 
             /* check for '.if' stack overflow */
             if (ctx.IfLevel == ctx.IfState.Length - 1)

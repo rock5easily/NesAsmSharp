@@ -81,7 +81,7 @@ namespace NesAsmSharp.Assembler.Processors
                             cnt = 0;
                             str = ctx.PrLnBuf.ToStringFromNullTerminated();
                             ctx.LstFp.WriteLine(str);
-                            ClearLn();
+                            ClearPrLnBuf();
                             LoadLc(ctx.DataLocCnt, 0);
                         }
                     }
@@ -97,7 +97,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// <summary>
         /// clear prlnbuf
         /// </summary>
-        public void ClearLn()
+        public void ClearPrLnBuf()
         {
             int i;
 

@@ -48,7 +48,7 @@ namespace NesAsmSharp.Assembler.Processors
                 }
 
                 /* install this new function in the hash table */
-                if (FuncInstall(ip) == 0) return;
+                if (InstallFunc(ip, ctx.LablPtr.Name) == 0) return;
             }
         }
 
@@ -56,14 +56,12 @@ namespace NesAsmSharp.Assembler.Processors
         /// search a function
         /// </summary>
         /// <returns></returns>
-        public int FuncLook()
+        public int LookUpFuncTable(string name)
         {
-            var symstr = ctx.Symbol.ToStringFromNullTerminated();
-
             /* search the function in the hash table */
-            if (ctx.FuncTbl.ContainsKey(symstr))
+            if (ctx.FuncTbl.ContainsKey(name))
             {
-                ctx.FuncPtr = ctx.FuncTbl[symstr];
+                ctx.FuncPtr = ctx.FuncTbl[name];
                 /* ok */
                 return 1;
             }
@@ -77,29 +75,28 @@ namespace NesAsmSharp.Assembler.Processors
         /// </summary>
         /// <param name="ip"></param>
         /// <returns></returns>
-        public int FuncInstall(int ip)
+        public int InstallFunc(int ip, string name)
         {
             /* mark the function name as reserved */
             ctx.LablPtr.Type = SymbolFlag.FUNC;
-            var symstr = ctx.Symbol.ToStringFromNullTerminated();
 
             /* check function name syntax */
-            if (symstr.Contains("."))
+            if (name.Contains("."))
             {
                 outPr.Error("Invalid function name!");
                 return 0;
             }
 
             /* extract function body */
-            if (FuncExtract(ip) == -1) return 0;
+            if (ExtractFunc(ip) == -1) return 0;
 
             /* allocate a new func struct */
             var func = new NesAsmFunc();
             /* initialize it */
-            func.Name = symstr;
+            func.Name = name;
             func.Line.CopyAsNullTerminated(ctx.FuncLine);
 
-            ctx.FuncTbl[symstr] = func;
+            ctx.FuncTbl[name] = func;
             ctx.FuncPtr = func;
             /* ok */
             return 1;
@@ -110,7 +107,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// </summary>
         /// <param name="ip"></param>
         /// <returns></returns>
-        public int FuncExtract(int ip)
+        public int ExtractFunc(int ip)
         {
             char c;
             int arg, max_arg;
@@ -168,7 +165,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// extract function args
         /// </summary>
         /// <returns></returns>
-        public int FuncGetArgs()
+        public int GetFuncArgs()
         {
             char c;
             int level;

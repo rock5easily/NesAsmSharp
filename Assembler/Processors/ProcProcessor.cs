@@ -25,11 +25,11 @@ namespace NesAsmSharp.Assembler.Processors
         public void DoCall(ref int ip)
         {
             NesAsmProc ptr;
-
+            string name;
             int value;
 
             /* define label */
-            symPr.LablDef(ctx.LocCnt, 1);
+            symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* update location counter */
             ctx.DataLocCnt = ctx.LocCnt;
@@ -42,9 +42,9 @@ namespace NesAsmSharp.Assembler.Processors
                 while (CharUtil.IsSpace(ctx.PrLnBuf[ip])) ip++;
 
                 /* extract name */
-                if (symPr.ColSym(ref ip) == 0)
+                if (string.IsNullOrEmpty((name = symPr.ReadSymbolNameFromPrLnBuf(ref ip))))
                 {
-                    if (ctx.Symbol[0] == '\0')
+                    if (name == "")
                     {
                         outPr.FatalError("Syntax error!");
                     }
@@ -55,7 +55,7 @@ namespace NesAsmSharp.Assembler.Processors
                 asmPr.CheckEOL(ref ip);
 
                 /* lookup proc table */
-                if ((ptr = ProcLook()) != null)
+                if ((ptr = ProcLook(name)) != null)
                 {
                     /* check banks */
                     if (ctx.Bank == ptr.Bank)
@@ -120,7 +120,7 @@ namespace NesAsmSharp.Assembler.Processors
                 else
                 {
                     /* lookup symbol table */
-                    if ((ctx.LablPtr = symPr.STLook(0)) == null)
+                    if ((ctx.LablPtr = symPr.LookUpSymbolTable(name, false)) == null)
                     {
                         outPr.FatalError("Undefined destination!");
                         return;
@@ -147,6 +147,7 @@ namespace NesAsmSharp.Assembler.Processors
         public void DoProc(ref int ip)
         {
             NesAsmProc ptr;
+            string name;
 
             /* check if nesting procs/groups */
             if (ctx.ProcPtr != null)
@@ -169,7 +170,7 @@ namespace NesAsmSharp.Assembler.Processors
             /* get proc name */
             if (ctx.LablPtr != null)
             {
-                ctx.Symbol.CopyAsNullTerminated(ctx.LablPtr.Name);
+                name = ctx.LablPtr.Name;
             }
             else
             {
@@ -177,9 +178,9 @@ namespace NesAsmSharp.Assembler.Processors
                 while (CharUtil.IsSpace(ctx.PrLnBuf[ip])) ip++;
 
                 /* extract name */
-                if (symPr.ColSym(ref ip) == 0)
+                if ((string.IsNullOrEmpty(name = symPr.ReadSymbolNameFromPrLnBuf(ref ip))))
                 {
-                    if (ctx.Symbol[0] != '\0') return;
+                    if (name != "") return;
                     if (ctx.OpType == (int)AsmDirective.P_PROC)
                     {
                         outPr.FatalError("Proc name is missing!");
@@ -187,15 +188,15 @@ namespace NesAsmSharp.Assembler.Processors
                     }
 
                     /* default name */
-                    ctx.Symbol.CopyAsNullTerminated($"__group_{ctx.ProcNb + 1}__");
+                    name = $"__group_{ctx.ProcNb + 1}__";
                 }
 
                 /* lookup symbol table */
-                if ((ctx.LablPtr = symPr.STLook(1)) == null) return;
+                if ((ctx.LablPtr = symPr.LookUpSymbolTable(name, true)) == null) return;
             }
 
             /* check symbol */
-            if (ctx.Symbol[0] == '.')
+            if (name[0] == '.')
             {
                 outPr.FatalError("Proc/group name can not be local!");
                 return;
@@ -205,13 +206,13 @@ namespace NesAsmSharp.Assembler.Processors
             if (asmPr.CheckEOL(ref ip) == 0) return;
 
             /* search (or create new) proc */
-            if ((ptr = ProcLook()) != null)
+            if ((ptr = ProcLook(name)) != null)
             {
                 ctx.ProcPtr = ptr;
             }
             else
             {
-                if (ProcInstall() == 0) return;
+                if (ProcInstall(name) == 0) return;
             }
             if (ctx.ProcPtr.RefCnt != 0)
             {
@@ -236,7 +237,7 @@ namespace NesAsmSharp.Assembler.Processors
             ctx.GLablPtr = ctx.LablPtr;
 
             /* define label */
-            symPr.LablDef(ctx.LocCnt, 1);
+            symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* output */
             if (ctx.Pass == PassFlag.LAST_PASS)
@@ -340,7 +341,7 @@ namespace NesAsmSharp.Assembler.Processors
             }
 
             /* remap proc symbols */
-            foreach (var sym in ctx.HashTbl.Values)
+            foreach (var sym in ctx.GLablHashTbl.Values)
             {
                     ctx.ProcPtr = sym.Proc;
 
@@ -363,7 +364,7 @@ namespace NesAsmSharp.Assembler.Processors
                     }
             }
             /* reserve call bank */
-            symPr.LablSet("_call_bank", ctx.MaxBank + 1);
+            symPr.SetReservedLabel("_call_bank", ctx.MaxBank + 1);
 
             /* reset */
             ctx.ProcPtr = null;
@@ -374,37 +375,34 @@ namespace NesAsmSharp.Assembler.Processors
         /// proc_look()
         /// </summary>
         /// <returns></returns>
-        public NesAsmProc ProcLook()
+        public NesAsmProc ProcLook(string name)
         {
-            var symstr = ctx.Symbol.ToStringFromNullTerminated();
-
             /* search the procedure in the hash table */
-            return ctx.ProcTbl.GetValueOrDefault(symstr);
+            return ctx.ProcTbl.GetValueOrDefault(name);
         }
 
         /// <summary>
         /// install a procedure in the hash table
         /// </summary>
         /// <returns></returns>
-        public int ProcInstall()
+        public int ProcInstall(string name)
         {
-            var symstr = ctx.Symbol.ToStringFromNullTerminated();
-
-            var ptr = new NesAsmProc();
-            /* initialize it */
-            ptr.Name = symstr;
-            ptr.Bank = (ctx.OpType == (int)AsmDirective.P_PGROUP) ? Definition.GROUP_BANK : Definition.PROC_BANK;
-            ptr.Base = ctx.ProcPtr != null ? ctx.LocCnt : 0;
+            var ptr = new NesAsmProc()
+            {
+                Name = name,
+                Bank = (ctx.OpType == (int)AsmDirective.P_PGROUP) ? Definition.GROUP_BANK : Definition.PROC_BANK,
+                Base = ctx.ProcPtr != null ? ctx.LocCnt : 0,
+                Size = 0,
+                Call = 0,
+                RefCnt = 0,
+                Link = null,
+                Group = ctx.ProcPtr,
+                Type = (AsmDirective)ctx.OpType,
+            };
             ptr.Org = ptr.Base;
-            ptr.Size = 0;
-            ptr.Call = 0;
-            ptr.RefCnt = 0;
-            ptr.Link = null;
-            ptr.Group = ctx.ProcPtr;
-            ptr.Type = (AsmDirective)ctx.OpType;
 
             ctx.ProcPtr = ptr;
-            ctx.ProcTbl[symstr] = ptr;
+            ctx.ProcTbl[name] = ptr;
 
             /* link it */
             if (ctx.ProcFirst == null)

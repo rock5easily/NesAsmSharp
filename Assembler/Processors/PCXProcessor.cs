@@ -218,7 +218,7 @@ namespace NesAsmSharp.Assembler.Processors
             char c;
 
             /* get pcx file name */
-            if (codePr.GetString(ref ip, out name, 127) == 0) return (0);
+            if ((name = codePr.ReadStringFromPrLnBuf(ref ip, 127)) == null) return (0);
 
             /* reset args counter */
             ctx.PcxNbArgs = 0;
