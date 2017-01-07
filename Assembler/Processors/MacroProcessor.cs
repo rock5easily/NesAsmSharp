@@ -67,7 +67,7 @@ namespace NesAsmSharp.Assembler.Processors
                 if (asmPr.CheckEOL(ref ip) == 0) return;
 
                 /* install this new macro in the hash table */
-                if (MacroInstall(name) == 0) return;
+                if (InstallMacro(name) == 0) return;
             }
             ctx.InMacro = true;
         }
@@ -80,8 +80,7 @@ namespace NesAsmSharp.Assembler.Processors
         }
 
         /* search a macro in the hash table */
-
-        public NesAsmMacro MacroLook(ref int ip)
+        public NesAsmMacro LookUpMacroTable(ref int ip)
         {
             char c;
             char[] buf = new char[Definition.MACROSZ + 1];
@@ -108,7 +107,7 @@ namespace NesAsmSharp.Assembler.Processors
         }
 
         /* extract macro arguments */
-        public int MacroGetArgs(int ip)
+        public int GetMacroArgs(int ip)
         {
             char c, t;
             int i, j, f, arg;
@@ -317,7 +316,7 @@ namespace NesAsmSharp.Assembler.Processors
 
         /* install a macro in the hash table */
 
-        public int MacroInstall(string name)
+        public int InstallMacro(string name)
         {
             /* mark the macro name as reserved */
             ctx.LablPtr.Type = SymbolFlag.MACRO;
@@ -342,7 +341,7 @@ namespace NesAsmSharp.Assembler.Processors
         }
 
         /* send back the addressing mode of a macro arg */
-        public MacroArgumentType MacroGetArgType(string argstr)
+        public MacroArgumentType GetMacroArgType(string argstr)
         {
             NesAsmSymbol sym;
             char c = '\0';

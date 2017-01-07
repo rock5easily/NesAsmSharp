@@ -176,7 +176,7 @@ namespace NesAsmSharp.Assembler.Processors
 
             /* is it a macro? */
             ip = i;
-            ctx.MacroPtr = macroPr.MacroLook(ref ip);
+            ctx.MacroPtr = macroPr.LookUpMacroTable(ref ip);
             if (ctx.MacroPtr != null)
             {
                 /* define label */
@@ -192,7 +192,7 @@ namespace NesAsmSharp.Assembler.Processors
                 }
 
                 /* get macro args */
-                if (macroPr.MacroGetArgs(ip) == 0) return;
+                if (macroPr.GetMacroArgs(ip) == 0) return;
 
                 /* output line */
                 if (ctx.Pass == PassFlag.LAST_PASS)

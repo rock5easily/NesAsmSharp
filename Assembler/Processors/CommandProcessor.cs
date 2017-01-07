@@ -505,7 +505,7 @@ namespace NesAsmSharp.Assembler.Processors
             case ',':
                 /* get name */
                 ip++;
-                if (codePr.GetString(ref ip, out name, 63) == 0) return;
+                if ((name = codePr.ReadStringFromPrLnBuf(ref ip, 63)) == null) return;
 
                 /* check name validity */
                 if (ctx.BankName[ctx.Value].Length > 0)
@@ -562,7 +562,7 @@ namespace NesAsmSharp.Assembler.Processors
             long longsize;
 
             /* get file name */
-            if (codePr.GetString(ref ip, out fname, 127) == 0) return;
+            if ((fname = codePr.ReadStringFromPrLnBuf(ref ip, 127)) == null) return;
 
             /* get file extension */
             if ((p = fname.LastIndexOf('.')) >= 0)
@@ -886,7 +886,7 @@ namespace NesAsmSharp.Assembler.Processors
             symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
             /* get file name */
-            if (codePr.GetString(ref ip, out fname, 127) == 0) return;
+            if ((fname = codePr.ReadStringFromPrLnBuf(ref ip, 127)) == null) return;
 
             /* open file */
             if (inPr.OpenInputFile(fname) == -1)

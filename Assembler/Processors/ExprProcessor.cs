@@ -21,17 +21,6 @@ namespace NesAsmSharp.Assembler.Processors
             10 /* BANK  */, 10 /* VRAM  */, 10 /* PAL   */, 10 /* SIZEOF*/
         };
 
-        public static readonly string[] Keyword = {    /* predefined functions */
-            "DEFINED",
-            "HIGH",
-            "LOW",
-            "PAGE",
-            "BANK",
-            "VRAM",
-            "PAL",
-            "SIZEOF",
-        };
-
         public ExprProcessor(NesAsmContext ctx) : base(ctx)
         {
         }
@@ -606,21 +595,20 @@ namespace NesAsmSharp.Assembler.Processors
             return name;
         }
 
-
-        private Dictionary<string, OperatorType> dicKeyToOperator = new Dictionary<string, OperatorType>()
+        private Dictionary<string, OperatorType> dicKeywordToOperator = new Dictionary<string, OperatorType>()
         {
-            [Keyword[0]] = OperatorType.OP_DEFINED,
-            [Keyword[1]] = OperatorType.OP_HIGH,
-            [Keyword[2]] = OperatorType.OP_LOW,
-            [Keyword[3]] = OperatorType.OP_PAGE,
-            [Keyword[4]] = OperatorType.OP_BANK,
-            [Keyword[7]] = OperatorType.OP_SIZEOF,
+            ["DEFINED"] = OperatorType.OP_DEFINED,
+            ["HIGH"] = OperatorType.OP_HIGH,
+            ["LOW"] = OperatorType.OP_LOW,
+            ["PAGE"] = OperatorType.OP_PAGE,
+            ["BANK"] = OperatorType.OP_BANK,
+            ["SIZEOF"] = OperatorType.OP_SIZEOF,
         };
 
-        private Dictionary<string, OperatorType> dicKeyToPCEOperator = new Dictionary<string, OperatorType>()
+        private Dictionary<string, OperatorType> dicPCEKeywordToOperator = new Dictionary<string, OperatorType>()
         {
-            [Keyword[5]] = OperatorType.OP_VRAM,
-            [Keyword[6]] = OperatorType.OP_PAL,
+            ["VRAM"] = OperatorType.OP_VRAM,
+            ["PAL"] = OperatorType.OP_PAL,
         };
 
         /// <summary>
@@ -632,12 +620,12 @@ namespace NesAsmSharp.Assembler.Processors
             OperatorType op = 0;
             var upperName = name.ToUpper();
             /* check if its an assembler function */
-            op = dicKeyToOperator.GetValueOrDefault(upperName, (OperatorType)0);
+            op = dicKeywordToOperator.GetValueOrDefault(upperName, (OperatorType)0);
 
             if (op == 0 && ctx.Machine.Type == MachineType.MACHINE_PCE)
             {
                 /* PCE specific functions */
-                op = dicKeyToPCEOperator.GetValueOrDefault(upperName, (OperatorType)0);
+                op = dicPCEKeywordToOperator.GetValueOrDefault(upperName, (OperatorType)0);
             }
 
             /* extra setup for functions that send back symbol infos */

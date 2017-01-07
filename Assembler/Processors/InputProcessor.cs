@@ -120,7 +120,7 @@ namespace NesAsmSharp.Assembler.Processors
                                 if (c >= '1' && c <= '9')
                                 {
                                     n = 1;
-                                    num = ((int)macroPr.MacroGetArgType(ctx.MacroArg[ctx.MacroIdx, c - '1'].ToStringFromNullTerminated())).ToString();
+                                    num = ((int)macroPr.GetMacroArgType(ctx.MacroArg[ctx.MacroIdx, c - '1'].ToStringFromNullTerminated())).ToString();
                                     arg = num;
                                 }
                                 else
