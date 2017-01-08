@@ -259,6 +259,10 @@ namespace NesAsmSharp.Assembler
                                 ctx.LocCnt = newLocCnt;
                                 continue;
                             }
+                            else if (ctx.LocCnt == 0x2000)
+                            {
+                                continue;
+                            }
                             else
                             {
                                 outPr.FatalError("Bank overflow, offset > $1FFF!");
