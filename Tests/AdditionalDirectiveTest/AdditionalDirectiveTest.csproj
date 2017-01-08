@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="CatbankTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PublicTest.cs" />
     <Compile Include="RegionTest.cs" />
     <Compile Include="TestBase.cs" />
   </ItemGroup>
@@ -69,10 +70,18 @@
     <Content Include="TestData\catbank_sample.asm" />
     <Content Include="TestData\incbin_catbank_sample.asm" />
     <Content Include="TestData\insufficient_region_sample.asm" />
+    <Content Include="TestData\invalid_label_definition_public_sample1.asm" />
+    <Content Include="TestData\invalid_label_definition_public_sample2.asm" />
     <Content Include="TestData\invalid_region_sample1.asm" />
     <Content Include="TestData\invalid_region_sample2.asm" />
     <Content Include="TestData\no_catbank_sample.asm" />
     <Content Include="TestData\empty_region_sample.asm" />
+    <Content Include="TestData\no_public_sample1.asm" />
+    <Content Include="TestData\no_public_sample2.asm" />
+    <Content Include="TestData\public_sample1.asm" />
+    <Content Include="TestData\public_sample2.asm" />
+    <Content Include="TestData\undefined_public_sample1.asm" />
+    <Content Include="TestData\undefined_public_sample2.asm" />
     <Content Include="TestData\various_region_sample.asm" />
   </ItemGroup>
   <Choose>

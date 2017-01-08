@@ -20,11 +20,11 @@ namespace NesAsmSharp.Assembler.Processors
         /// </summary>
         /// <param name="ip"></param>
         /// <returns></returns>
-        public string ReadSymbolNameFromPrLnBuf(ref int ip)
+        public string ReadSymbolNameFromPrLnBuf(ref int ip, bool midDotAllowed = false)
         {
             int i = 0;
             char c;
-            char[] buf = new char[Definition.SBOLSZ + 1];
+            char[] buf = new char[ctx.PrLnBuf.Length];
 
             // get the symbol
             for (;;)
@@ -32,31 +32,63 @@ namespace NesAsmSharp.Assembler.Processors
                 c = ctx.PrLnBuf[ip];
                 if (char.IsDigit(c) && (i == 0)) break;
                 if ((!CharUtil.IsAlNum(c)) && (c != '_') && (c != '.')) break;
-                if (i < Definition.SBOLSZ)
+                if (ip < ctx.PrLnBuf.Length - 1)
                 {
                     buf[i++] = c;
                 }
                 else
                 {
-                    outPr.FatalError("Symbol name is too long!");
+                    outPr.FatalError("Line buffer over flow!");
                     return null;
                 }
                 ip++;
             }
             buf[i] = '\0';
             var name = buf.ToStringFromNullTerminated();
+            var names = name.Split('.');
+            string gName = null;
+            if (midDotAllowed)
+            {
+                if (names.Length > 2 || (names.Length == 2 && names[1] == ""))
+                {
+                    outPr.FatalError("Invalid symbol name!");
+                    return null;
+                }
+                gName = names[0];
+                var lName = (names.Length == 2) ? "." + names[1] : "";
+
+                if (gName.Length > Definition.SBOLSZ || lName.Length > Definition.SBOLSZ)
+                {
+                    outPr.FatalError("Symbol name is too long!");
+                    return null;
+                }
+            }
+            else
+            {
+                if (names.Length > 2 || (names.Length == 2 && names[0] != ""))
+                {
+                    outPr.FatalError("Invalid symbol name!");
+                    return null;
+                }
+                if (name.Length > Definition.SBOLSZ)
+                {
+                    outPr.FatalError("Symbol name is too long!");
+                    return null;
+                }
+                gName = names[0];
+            }
 
             // check if it's a reserved symbol
-            if (i == 1)
+            if (gName.Length == 1)
             {
-                c = char.ToUpper(buf[0]);
+                c = char.ToUpper(gName[0]);
                 if (c == 'A' || c == 'X' || c == 'Y')
                 {
                     outPr.FatalError("Reserved symbol (A, X or Y)!");
                     return null;
                 }
             }
-            else if (exprPr.CheckKeyword(name) != 0)
+            else if (gName.Length > 1 && exprPr.CheckKeyword(gName) != 0)
             {
                 outPr.FatalError("Reserved symbol!");
                 return null;
@@ -80,15 +112,15 @@ namespace NesAsmSharp.Assembler.Processors
             NesAsmSymbol sym;
             var symbolInstalled = false;
 
-            /* local symbol */
+            // local symbol
             if (name[0] == '.')
             {
                 if (ctx.GLablPtr != null)
                 {
-                    /* search the symbol in the local list */
+                    // search the symbol in the local list
                     sym = ctx.GLablPtr.Local?.FirstOrDefault(s => name == s.Name);
 
-                    /* new symbol */
+                    // new symbol
                     if (sym == null)
                     {
                         if (createFlag)
@@ -104,13 +136,13 @@ namespace NesAsmSharp.Assembler.Processors
                     return null;
                 }
             }
-            /* global symbol */
-            else
+            // global symbol
+            else if (!name.Contains("."))
             {
-                /* search symbol */
+                // search symbol
                 sym = ctx.GLablHashTbl.GetValueOrDefault(name);
 
-                /* new symbol */
+                // new symbol
                 if (sym == null)
                 {
                     if (createFlag)
@@ -118,6 +150,38 @@ namespace NesAsmSharp.Assembler.Processors
                         sym = InstallSymbol(name, SymbolScope.GLOBAL);
                         symbolInstalled = true;
                     }
+                }
+            }
+            // global.local symbol
+            else
+            {
+                var names = name.Split('.');
+                if (names.Length != 2 || names[1] == "")
+                {
+                    outPr.Error("Invalid symbol name!");
+                    return null;
+                }
+                var gName = names[0];
+                var lName = "." + names[1];
+                
+                // search symbol
+                var gSym = LookUpSymbolTable(gName, createFlag);
+                if (gSym != null)
+                {
+                    var gLablPtr = ctx.GLablPtr;
+                    ctx.GLablPtr = gSym;
+                    var lSym = LookUpSymbolTable(lName, createFlag);
+                    ctx.GLablPtr = gLablPtr;
+
+                    if (lSym != null && lSym.Type != SymbolFlag.UNDEF && lSym.Type != SymbolFlag.IFUNDEF && lSym.AccessLevel != AccessLevelType.PUBLIC)
+                    {
+                        outPr.Error("Local label access not allowed!");
+                    }
+                    sym = lSym;
+                }
+                else
+                {
+                    sym = null;
                 }
             }
 
@@ -185,7 +249,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// <param name="lval"></param>
         /// <param name="addrFlag">lvalをアドレス値に変換する場合はtrue</param>
         /// <returns></returns>
-        public int AssignValueToLablPtr(int lval, bool addrFlag)
+        public int AssignValueToLablPtr(int lval, bool addrFlag, AccessLevelType accessLevel = AccessLevelType.PRIVATE)
         {
             char c;
 
@@ -207,10 +271,11 @@ namespace NesAsmSharp.Assembler.Processors
                 case SymbolFlag.UNDEF:
                     ctx.LablPtr.Type = SymbolFlag.DEFABS;
                     ctx.LablPtr.Value = lval;
+                    ctx.LablPtr.AccessLevel = accessLevel;
                     break;
                 /* already defined - error */
                 case SymbolFlag.IFUNDEF:
-                    outPr.Error("Can not define this label, declared as undefined in an IF expression!");
+                    outPr.Error("Can not define this label, declared as undefined in an IFDEF/IFNDEF expression!");
                     return (-1);
                 case SymbolFlag.MACRO:
                     outPr.Error("Symbol already used by a macro!");

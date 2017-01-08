@@ -52,11 +52,11 @@ namespace NesAsmSharp.Tests
             Assert.IsTrue(assembler.AssembleSuccess);
 
             var result = assembler.ResultBinary;
-            Assert.AreNotEqual(null, result);
+            Assert.IsNotNull(result);
             Assert.AreEqual(8 * 0x2000, result.Length);
 
             var map = assembler.ResultMap;
-            Assert.AreNotEqual(null, map);
+            Assert.IsNotNull(map);
             Assert.AreEqual(8 * 0x2000, map.Length);
 
             Assert.AreEqual(1, result[0x1FFC]);
@@ -148,11 +148,11 @@ namespace NesAsmSharp.Tests
             Assert.IsTrue(assembler.AssembleSuccess);
 
             var result = assembler.ResultBinary;
-            Assert.AreNotEqual(null, result);
+            Assert.IsNotNull(result);
             Assert.AreEqual(11 * 0x2000, result.Length);
 
             var map = assembler.ResultMap;
-            Assert.AreNotEqual(null, map);
+            Assert.IsNotNull(map);
             Assert.AreEqual(11 * 0x2000, map.Length);
 
             Assert.AreEqual(0x9FFF, GetNesAddr(map, 0x1FFF));

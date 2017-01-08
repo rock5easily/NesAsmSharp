@@ -23,7 +23,7 @@ namespace NesAsmSharp.Assembler.Processors
             0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0F, 0x0C,
             0x0F, 0x0F, 0x0F, 0x0C, 0x0C, 0x0C, 0x0C, 0x0F, 0x0F, 0x0F,
             0x0F, 0x0F, 0x0C, 0x0C, 0x0C, 0x04, 0x04, 0x04, 0x04, 0x04,
-            0x0F, 0x0F, 0x0F, 0x0F
+            0x0F, 0x0F, 0x0F, 0x0F, 0x0F
         };
 
         public CommandProcessor(NesAsmContext ctx) : base(ctx)
@@ -1366,6 +1366,22 @@ namespace NesAsmSharp.Assembler.Processors
         }
 
         /// <summary>
+        /// publicラベルの定義
+        /// </summary>
+        /// <param name="ip"></param>
+        public void DoPublic(ref int ip)
+        {
+            if (ctx.LablPtr == null)
+            {
+                outPr.Error("PUBLIC: Label declaration required!");
+                return;
+            }
+
+            // define label
+            symPr.AssignValueToLablPtr(ctx.LocCnt, true, AccessLevelType.PUBLIC);
+        }
+
+        /// <summary>
         /// hex-style string to int
         /// </summary>
         /// <param name="str"></param>
@@ -1455,6 +1471,7 @@ namespace NesAsmSharp.Assembler.Processors
                         new NesAsmOpecode("CATBANK",      DoCatbank,        OpCodeFlag.PSEUDO, AsmDirective.P_CATBANK, 0),
                         new NesAsmOpecode("BEGINREGION",  DoBeginregion,    OpCodeFlag.PSEUDO, AsmDirective.P_BEGINREGION, 0),
                         new NesAsmOpecode("ENDREGION",    DoEndregion,      OpCodeFlag.PSEUDO, AsmDirective.P_ENDREGION, 0),
+                        new NesAsmOpecode("PUBLIC",       DoPublic,         OpCodeFlag.PSEUDO, AsmDirective.P_PUBLIC,  0),
 
                         new NesAsmOpecode(".BANK",         DoBank,          OpCodeFlag.PSEUDO, AsmDirective.P_BANK,    0),
                         new NesAsmOpecode(".BSS",          DoSection,       OpCodeFlag.PSEUDO, AsmDirective.P_BSS,     (int)SectionType.S_BSS),
@@ -1466,7 +1483,7 @@ namespace NesAsmSharp.Assembler.Processors
                         new NesAsmOpecode(".DS",           DoDs,            OpCodeFlag.PSEUDO, AsmDirective.P_DS,      0),
                         new NesAsmOpecode(".ELSE",         asmPr.DoElse,    OpCodeFlag.PSEUDO, AsmDirective.P_ELSE,    0),
                         new NesAsmOpecode(".ENDIF",        asmPr.DoEndif,   OpCodeFlag.PSEUDO, AsmDirective.P_ENDIF,   0),
-                        new NesAsmOpecode(".ENDM",         macroPr.DoEndm, OpCodeFlag.PSEUDO, AsmDirective.P_ENDM,    0),
+                        new NesAsmOpecode(".ENDM",         macroPr.DoEndm,  OpCodeFlag.PSEUDO, AsmDirective.P_ENDM,    0),
                         new NesAsmOpecode(".ENDP",         procPr.DoEndp,   OpCodeFlag.PSEUDO, AsmDirective.P_ENDP,    (int)AsmDirective.P_PROC),
                         new NesAsmOpecode(".ENDPROCGROUP", procPr.DoEndp,   OpCodeFlag.PSEUDO, AsmDirective.P_ENDPG,   (int)AsmDirective.P_PGROUP),
                         new NesAsmOpecode(".EQU",          DoEqu,           OpCodeFlag.PSEUDO, AsmDirective.P_EQU,     0),
@@ -1494,8 +1511,9 @@ namespace NesAsmSharp.Assembler.Processors
                         new NesAsmOpecode(".WORD",         DoDw,            OpCodeFlag.PSEUDO, AsmDirective.P_DW,      0),
                         new NesAsmOpecode(".ZP",           DoSection,       OpCodeFlag.PSEUDO, AsmDirective.P_ZP,      (int)SectionType.S_ZP),
                         new NesAsmOpecode(".CATBANK",      DoCatbank,       OpCodeFlag.PSEUDO, AsmDirective.P_CATBANK, 0),
-                        new NesAsmOpecode(".BEGINREGION",  DoBeginregion,    OpCodeFlag.PSEUDO, AsmDirective.P_BEGINREGION, 0),
-                        new NesAsmOpecode(".ENDREGION",    DoEndregion,      OpCodeFlag.PSEUDO, AsmDirective.P_ENDREGION, 0),
+                        new NesAsmOpecode(".BEGINREGION",  DoBeginregion,   OpCodeFlag.PSEUDO, AsmDirective.P_BEGINREGION, 0),
+                        new NesAsmOpecode(".ENDREGION",    DoEndregion,     OpCodeFlag.PSEUDO, AsmDirective.P_ENDREGION, 0),
+                        new NesAsmOpecode(".PUBLIC",       DoPublic,        OpCodeFlag.PSEUDO, AsmDirective.P_PUBLIC,  0),
                     };
                 }
                 return basePseudo;
