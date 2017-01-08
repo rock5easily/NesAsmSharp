@@ -49,4 +49,19 @@ namespace NesAsmSharp.Tests
             return ((map[idx] >> 5) << 13) + (idx & 0x1FFF);
         }
     }
+
+    public static class StringExtension
+    {
+        /// <summary>
+        /// 文字列中に指定した部分文字列が何回出現しているかを返す
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="pattern"></param>
+        /// <returns></returns>
+        public static int CountPattern(this string str, string pattern)
+        {
+            var split = str.Split(new string[] { pattern }, StringSplitOptions.None);
+            return split.Length - 1;
+        }
+    }
 }
