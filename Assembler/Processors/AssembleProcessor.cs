@@ -162,11 +162,16 @@ namespace NesAsmSharp.Assembler.Processors
             {
                 i = Definition.SFIELD;
             }
+            // Label declaration line
             else
             {
                 if (!string.IsNullOrEmpty((name = symPr.ReadSymbolNameFromPrLnBuf(ref i))))
                 {
                     if ((ctx.LablPtr = symPr.LookUpSymbolTable(name, true)) == null) return;
+                }
+                else
+                {
+                    return;
                 }
                 if ((ctx.LablPtr != null) && (ctx.PrLnBuf[i] == ':')) i++;
             }
