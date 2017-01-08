@@ -90,3 +90,42 @@ SUBROUTINE_SIZE = REGIONSIZE("subroutine")
   .db (SUBROUTINE_SIZE & $FF) ; $08
   .db ((SUBROUTINE_SIZE >> 8) & $FF) ; $00
 ```
+
+### .PUBLIC directive
+
+ローカルラベルに対して使用することで、そのローカルラベルをスコープ外から参照することができるようになります。
+
+#### 宣言
+
+ローカルラベルの宣言でローカルラベル名の後にスペースまたはタブをはさんで`.public`と記述します。
+
+`.locallabel .public`
+
+#### 参照
+
+対象のローカルラベルが所属するグローバルラベル名とローカルラベル名をつなげて記述します。
+
+`jsr Global1.Local1`
+
+#### 使用例
+
+* サンプルコード
+```
+  .bank	$00
+  .org	$8000
+GLabel1:
+  lda	#$01
+.LLabel1 .public  ; public local label declaration
+  clc
+  adc	<$00
+  sta	<$00
+  rts
+GLabel2:
+  jsr	GLabel1
+  lda	#$03
+  jsr	GLabel1.LLabel1
+  rts
+  .dw	GLabel1.LLabel1
+  .db	LOW(GLabel1.LLabel1)
+  .db	HIGH(GLabel1.LLabel1)
+```
