@@ -245,7 +245,7 @@ namespace NesAsmSharp.Assembler
                 while (inPr.ReadLine() != -1)
                 {
                     asmPr.Assemble();
-                    if (ctx.LocCnt > 0x2000)
+                    if (ctx.LocCnt >= 0x2000)
                     {
                         if (ctx.ProcPtr == null)
                         {
