@@ -176,7 +176,6 @@ namespace NesAsmSharp.Assembler.Processors
                     if (lSym != null && lSym.Type != SymbolFlag.UNDEF && lSym.Type != SymbolFlag.IFUNDEF && lSym.AccessLevel != AccessLevelType.PUBLIC)
                     {
                         outPr.Error("Local label access not allowed!");
-                        lSym = null;
                     }
                     sym = lSym;
                 }
