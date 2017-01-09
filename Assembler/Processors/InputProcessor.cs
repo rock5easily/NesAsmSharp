@@ -298,6 +298,7 @@ namespace NesAsmSharp.Assembler.Processors
                 /* open the file */
                 try
                 {
+                    ctx.AssembledFileList.Add(fullName);
                     fileText = File.ReadAllText(fullName, opt.Encoding);
                     ctx.InFileTextCache[fullName] = fileText;
                 }
@@ -321,7 +322,7 @@ namespace NesAsmSharp.Assembler.Processors
             };
             ctx.InputFile[ctx.InFileNum] = inputInfo;
 
-            if ((ctx.Pass == PassFlag.LAST_PASS) && (opt.XListOpt) && (opt.ListLevel > 0))
+            if ((ctx.Pass == PassFlag.LAST_PASS) && (ctx.XListOpt) && (opt.ListLevel > 0))
             {
                 ctx.LstFp.WriteLine("#[{0}]   {1}", ctx.InFileNum, ctx.InputFile[ctx.InFileNum].Name);
             }
@@ -358,7 +359,7 @@ namespace NesAsmSharp.Assembler.Processors
             ctx.InFileError = -1;
             ctx.SrcLineNum = ctx.InputFile[ctx.InFileNum].LineNum;
             ctx.InFp = ctx.InputFile[ctx.InFileNum].Fp;
-            if ((ctx.Pass == PassFlag.LAST_PASS) && (opt.XListOpt) && (opt.ListLevel > 0))
+            if ((ctx.Pass == PassFlag.LAST_PASS) && (ctx.XListOpt) && (opt.ListLevel > 0))
             {
                 ctx.LstFp.WriteLine("#[{0}]   {1}", ctx.InFileNum, ctx.InputFile[ctx.InFileNum].Name);
             }

@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assembler\NesAsmWatcher.cs" />
     <Compile Include="Util\ArrayPointer.cs" />
     <Compile Include="Processors\AssembleProcessor.cs" />
     <Compile Include="Assembler\AssemblerFactory.cs" />
@@ -67,6 +68,7 @@
     <Compile Include="Util\ByteArrayExtension.cs" />
     <Compile Include="Assembler\NesAsmContext.cs" />
     <Compile Include="Util\DictionaryExtension.cs" />
+    <Compile Include="Util\FileWatcher.cs" />
     <Compile Include="Util\IArrayPointer.cs" />
     <Compile Include="Util\Rank2ArrayPointer.cs" />
   </ItemGroup>

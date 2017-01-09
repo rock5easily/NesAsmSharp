@@ -1,10 +1,8 @@
-﻿using System;
+﻿using NesAsmSharp.Assembler;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
-using NesAsmSharp.Assembler;
+using System.Text;
 
 namespace NesAsmSharp.Main
 {
@@ -26,6 +24,8 @@ namespace NesAsmSharp.Main
             Console.Out.WriteLine("-autozp: assemble auto zeropage memory access. Ex) lda ($nn),y");
             Console.Out.WriteLine("-srec  : create a Motorola S-record file");
             Console.Out.WriteLine("-e ENC : specify infile text encoding (SJIS|UTF8)");
+            Console.Out.WriteLine("-watch : watch source file change and reassemble");
+            Console.Out.WriteLine("-wd    : disable assembler warning");
             Console.Out.WriteLine("infile : file to be assembled");
         }
 
@@ -71,6 +71,8 @@ namespace NesAsmSharp.Main
             DicOpt0["-l1"] = () => opt.ListLevel = 1;
             DicOpt0["-l2"] = () => opt.ListLevel = 2;
             DicOpt0["-l3"] = () => opt.ListLevel = 3;
+            DicOpt0["-watch"] = () => opt.WatchOpt = true;
+            DicOpt0["-wd"] = () => opt.WarningDisabled = true;
             DicOpt0["-?"] = () =>
             {
                 ShowHelp();
@@ -180,10 +182,19 @@ namespace NesAsmSharp.Main
             programName = Path.GetFileNameWithoutExtension(Environment.GetCommandLineArgs()[0]);
 
             var opt = ParseOption(args);
+            var result = 0;
 
-            var assembler = AssemblerFactory.CreateAssembler(MachineType.MACHINE_NES, opt);
+            if (opt.WatchOpt)
+            {
+                var watcher = new NesAsmWatcher(MachineType.MACHINE_NES, opt);
+                result = watcher.Watch();
+            }
+            else
+            {
+                var assembler = AssemblerFactory.CreateAssembler(MachineType.MACHINE_NES, opt);
 
-            var result = assembler.Assemble();
+                result = assembler.Assemble();
+            }
 
             Environment.Exit(result);
         }

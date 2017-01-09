@@ -2,9 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NesAsmSharp.Assembler
 {
@@ -311,6 +308,15 @@ namespace NesAsmSharp.Assembler
     {
         MACHINE_PCE = 0,
         MACHINE_NES = 1,
+    }
+
+    public enum SeverityLevel
+    {
+        Debug,
+        Info,
+        Warning,
+        Error,
+        Fatal,
     }
 
     public class NesAsmOpecode

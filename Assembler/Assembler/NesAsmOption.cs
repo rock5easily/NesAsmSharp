@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace NesAsmSharp.Assembler
 {
@@ -37,9 +34,7 @@ namespace NesAsmSharp.Assembler
         /// </summary>
         public bool MxOpt { get; set; }
         public bool MListOpt { get; set; } // macro listing main flag
-        public bool XListOpt { get; set; } // listing file main flag
         public int ListLevel { get; set; } // output level
-        public Dictionary<AssemblerOption, bool> AsmOpt { get; private set; } // assembler options
         public bool AutoZPOpt { get; set; } // auto zeropage mode for NES ONLY
         /// <summary>
         /// 標準出力先を変更する場合に設定する
@@ -62,14 +57,27 @@ namespace NesAsmSharp.Assembler
         /// リスト出力用のStreamWriterを明示的に指定する場合に設定(テスト用オプション)
         /// </summary>
         public StreamWriter LstStreamWriter { get; set; }
+        /// <summary>
+        /// ソースファイルの変更を監視して再アセンブルをかける
+        /// </summary>
+        public bool WatchOpt { get; set; }
+        /// <summary>
+        /// アセンブラの警告を無効にする
+        /// </summary>
+        public bool WarningDisabled { get; set; }
 
         public NesAsmOption()
         {
-            AsmOpt = new Dictionary<AssemblerOption, bool>();
             // set default encoding
             this.Encoding = Encoding.Default;
             this.StdOut = Console.Out;
             this.StdErr = Console.Error;
+        }
+
+        public NesAsmOption Clone()
+        {
+            var cloned = this.MemberwiseClone() as NesAsmOption;
+            return cloned;
         }
     }
 }

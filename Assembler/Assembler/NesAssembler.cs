@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-using NesAsmSharp.Assembler.Processors;
+﻿using NesAsmSharp.Assembler.Processors;
 using NesAsmSharp.Assembler.Util;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace NesAsmSharp.Assembler
 {
@@ -55,6 +52,14 @@ namespace NesAsmSharp.Assembler
             get
             {
                 return opt;
+            }
+        }
+
+        public IList<string> AssembledFileList
+        {
+            get
+            {
+                return ctx.AssembledFileList;
             }
         }
 
@@ -167,6 +172,11 @@ namespace NesAsmSharp.Assembler
             ctx.BankBase = 0;
             ctx.ErrCnt = 0;
 
+            if (opt.WarningDisabled)
+            {
+                ctx.Severity = SeverityLevel.Error;
+            }
+
             return 0;
         }
 
@@ -190,17 +200,17 @@ namespace NesAsmSharp.Assembler
                 ctx.SrcLineNum = 0;
                 ctx.MacroCounter = 0;
                 ctx.MacroCntMax = 0;
-                opt.XListOpt = false;
+                ctx.XListOpt = false;
                 ctx.GLablPtr = null;
                 ctx.SkipLines = false;
                 ctx.RSBase = 0;
                 ctx.ProcNb = 0;
 
                 /* reset assembler options */
-                opt.AsmOpt[AssemblerOption.OPT_LIST] = false;
-                opt.AsmOpt[AssemblerOption.OPT_MACRO] = opt.MListOpt;
-                opt.AsmOpt[AssemblerOption.OPT_WARNING] = false;
-                opt.AsmOpt[AssemblerOption.OPT_OPTIMIZE] = false;
+                ctx.AsmOpt[AssemblerOption.OPT_LIST] = false;
+                ctx.AsmOpt[AssemblerOption.OPT_MACRO] = opt.MListOpt;
+                ctx.AsmOpt[AssemblerOption.OPT_WARNING] = false;
+                ctx.AsmOpt[AssemblerOption.OPT_OPTIMIZE] = false;
 
                 /* reset bank arrays */
                 Array.Clear(ctx.BankLocCnt, 0, ctx.BankLocCnt.Length);
@@ -344,7 +354,7 @@ namespace NesAsmSharp.Assembler
                 // FIRST PASS完了時点でopt.XListOptがtrueに変わっているかをチェック
                 if (ctx.Pass == PassFlag.FIRST_PASS)
                 {
-                    if (opt.XListOpt && opt.ListLevel > 0)
+                    if (ctx.XListOpt && opt.ListLevel > 0)
                     {
                         try
                         {
