@@ -14,7 +14,7 @@ http://www.2a03.jp/~minachun/nesasm/nesasm_x86.html
 
 ## 使い方
 
-```NesAsmSharp [-options] [-? (for help)] infile[.asm]```
+`NesAsmSharp [-options] [-? (for help)] infile[.asm]`
 
 | オプション | 説明 |
 |:----------|:-----|
@@ -131,3 +131,17 @@ GLabel2:
   .db	LOW(GLabel1.LLabel1)
   .db	HIGH(GLabel1.LLabel1)
 ```
+
+## 強化された機能
+
+### .INCBIN directive
+
+読み込むファイルの読み込み開始位置と読み込みサイズを指定できるようになりました
+
+`.incbin "filename" [, readOffset [, readSize]]`
+
+| 引数 | 説明 |
+|:-----|:-----|
+| filename | 読み込むファイル名 |
+| readOffset | ファイルの読み込み開始位置 <br> 省略時はファイルの先頭 |
+| readSize | ファイルの読み込みサイズ <br> 省略時はファイルの末尾まで |
