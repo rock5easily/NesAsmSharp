@@ -1,10 +1,6 @@
 ﻿using NesAsmSharp.Assembler.Util;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NesAsmSharp.Assembler.Processors
 {
@@ -25,8 +21,8 @@ namespace NesAsmSharp.Assembler.Processors
 
             /* check if output possible */
             if (opt.ListLevel == 0) return;
-            if (!opt.XListOpt || !opt.AsmOpt[AssemblerOption.OPT_LIST] ||
-                (ctx.IsExpandMacro && !opt.AsmOpt[AssemblerOption.OPT_MACRO])) return;
+            if (!ctx.XListOpt || !ctx.AsmOpt[AssemblerOption.OPT_LIST] ||
+                (ctx.IsExpandMacro && !ctx.AsmOpt[AssemblerOption.OPT_MACRO])) return;
 
 
             /* update line buffer if necessary */
@@ -441,7 +437,8 @@ namespace NesAsmSharp.Assembler.Processors
         /// <param name="str"></param>
         public void FatalError(string str)
         {
-            Error(str);
+            PrintAssemblerMessage(str, SeverityLevel.Fatal);
+            ctx.ErrCnt++;
             ctx.StopPass = true;
         }
 
@@ -451,7 +448,7 @@ namespace NesAsmSharp.Assembler.Processors
         /// <param name="str"></param>
         public void Error(string str)
         {
-            Warning(str);
+            PrintAssemblerMessage(str, SeverityLevel.Error);
             ctx.ErrCnt++;
         }
 
@@ -461,7 +458,24 @@ namespace NesAsmSharp.Assembler.Processors
         /// <param name="str"></param>
         public void Warning(string str)
         {
-            /* put the source line number into prlnbuf */
+            PrintAssemblerMessage(str, SeverityLevel.Warning);
+        }
+
+        /// <summary>
+        /// Info printing routine
+        /// </summary>
+        /// <param name="str"></param>
+        public void Info(string str)
+        {
+            PrintAssemblerMessage(str, SeverityLevel.Info);
+        }
+
+        public void PrintAssemblerMessage(string str, SeverityLevel severity)
+        {
+            // severity check
+            if (ctx.Severity > severity) return;
+
+            // put the source line number into prlnbuf
             var i = 4;
             var temp = ctx.SrcLineNum;
             while (temp != 0)
@@ -470,17 +484,17 @@ namespace NesAsmSharp.Assembler.Processors
                 temp /= 10;
             }
 
-            /* update the current file name */
+            // update the current file name
             if (ctx.InFileError != ctx.InFileNum)
             {
                 ctx.InFileError = ctx.InFileNum;
                 opt.StdOut.WriteLine($"#[{ctx.InFileNum}]   {ctx.InputFile[ctx.InFileNum].Name}");
             }
 
-            /* output the line and the error message */
+            // output the line and the error message
             LoadLc(ctx.LocCnt, 0);
             opt.StdOut.WriteLine(ctx.PrLnBuf.ToStringFromNullTerminated());
-            opt.StdOut.WriteLine("       {0}", str);
+            opt.StdOut.WriteLine($"       {str}");
         }
     }
 }

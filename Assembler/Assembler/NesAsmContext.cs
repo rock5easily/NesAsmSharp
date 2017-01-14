@@ -1,10 +1,7 @@
-﻿using NesAsmSharp.Assembler.Util;
+﻿using NesAsmSharp.Assembler.Processors;
+using NesAsmSharp.Assembler.Util;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NesAsmSharp.Assembler.Processors;
 using System.IO;
 
 namespace NesAsmSharp.Assembler
@@ -64,6 +61,15 @@ namespace NesAsmSharp.Assembler
         public int SrcLineNum { get; set; } // source line number counter
         public int Undef { get; set; } // undefined symbol in expression flg
         public uint Value { get; set; } // operand field value
+
+        public Dictionary<AssemblerOption, bool> AsmOpt { get; private set; } // assembler options
+        public bool XListOpt { get; set; } // listing file main flag
+        /// <summary>
+        /// アセンブルに使用されたファイル一覧
+        /// </summary>
+        public List<string> AssembledFileList { get; private set; }
+
+        public SeverityLevel Severity { get; set; }
 
         // macro.c
         public bool InMacro { get; set; }
@@ -172,6 +178,9 @@ namespace NesAsmSharp.Assembler
             BankCat = new bool[Definition.BANK_NUM_MAX];
             RegionTbl = new Dictionary<string, NesAsmRegion>();
             StringTbl = new List<string>();
+            AsmOpt = new Dictionary<AssemblerOption, bool>();
+            AssembledFileList = new List<string>();
+            Severity = SeverityLevel.Warning;
 
             // macro.c
             MacroArg = new char[8, 10][];

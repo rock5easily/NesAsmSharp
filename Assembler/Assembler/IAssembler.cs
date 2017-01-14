@@ -29,5 +29,9 @@ namespace NesAsmSharp.Assembler
         /// </summary>
         /// <returns></returns>
         int Assemble();
+        /// <summary>
+        /// アセンブルに使用されたファイル一覧を返す
+        /// </summary>
+        IList<string> AssembledFileList { get; }
     }
 }

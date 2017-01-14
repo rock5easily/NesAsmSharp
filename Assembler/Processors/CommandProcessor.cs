@@ -76,7 +76,7 @@ namespace NesAsmSharp.Assembler.Processors
             /* bank overflow warning */
             if (ctx.Pass == PassFlag.LAST_PASS)
             {
-                if (opt.AsmOpt[AssemblerOption.OPT_WARNING])
+                if (ctx.AsmOpt[AssemblerOption.OPT_WARNING])
                 {
                     switch (ctx.OpVal)
                     {
@@ -111,8 +111,8 @@ namespace NesAsmSharp.Assembler.Processors
             /* check end of line */
             if (asmPr.CheckEOL(ref ip) == 0) return;
 
-            opt.AsmOpt[AssemblerOption.OPT_LIST] = true;
-            opt.XListOpt = true;
+            ctx.AsmOpt[AssemblerOption.OPT_LIST] = true;
+            ctx.XListOpt = true;
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace NesAsmSharp.Assembler.Processors
             /* check end of line */
             if (asmPr.CheckEOL(ref ip) == 0) return;
 
-            opt.AsmOpt[AssemblerOption.OPT_MACRO] = true;
+            ctx.AsmOpt[AssemblerOption.OPT_MACRO] = true;
         }
 
         /// <summary>
@@ -136,7 +136,7 @@ namespace NesAsmSharp.Assembler.Processors
             /* check end of line */
             if (asmPr.CheckEOL(ref ip) == 0) return;
 
-            opt.AsmOpt[AssemblerOption.OPT_LIST] = false;
+            ctx.AsmOpt[AssemblerOption.OPT_LIST] = false;
         }
 
         /// <summary>
@@ -148,7 +148,7 @@ namespace NesAsmSharp.Assembler.Processors
             /* check end of line */
             if (asmPr.CheckEOL(ref ip) == 0) return;
 
-            opt.AsmOpt[AssemblerOption.OPT_MACRO] = opt.MListOpt;
+            ctx.AsmOpt[AssemblerOption.OPT_MACRO] = opt.MListOpt;
         }
 
         /// <summary>
@@ -604,6 +604,10 @@ namespace NesAsmSharp.Assembler.Processors
 
             try
             {
+                if (!ctx.AssembledFileList.Contains(targetName))
+                {
+                    ctx.AssembledFileList.Add(targetName);
+                }
                 fsBin = new FileStream(targetName, FileMode.Open, FileAccess.Read);
             }
             catch(Exception e)
@@ -1232,11 +1236,11 @@ namespace NesAsmSharp.Assembler.Processors
                 /* set option */
                 if (flag == '+')
                 {
-                    opt.AsmOpt[option] = true;
+                    ctx.AsmOpt[option] = true;
                 }
                 else if (flag == '-')
                 {
-                    opt.AsmOpt[option] = false;
+                    ctx.AsmOpt[option] = false;
                 }
             }
 

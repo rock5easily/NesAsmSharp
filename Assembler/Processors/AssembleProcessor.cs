@@ -190,7 +190,7 @@ namespace NesAsmSharp.Assembler.Processors
                 /* output location counter */
                 if (ctx.Pass == PassFlag.LAST_PASS)
                 {
-                    if (!opt.AsmOpt[AssemblerOption.OPT_MACRO])
+                    if (!ctx.AsmOpt[AssemblerOption.OPT_MACRO])
                     {
                         outPr.LoadLc((ctx.Page << 13) + ctx.LocCnt, 0);
                     }
