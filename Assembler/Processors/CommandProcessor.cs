@@ -1,10 +1,6 @@
 ﻿using NesAsmSharp.Assembler.Util;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NesAsmSharp.Assembler.Processors
 {
@@ -559,42 +555,72 @@ namespace NesAsmSharp.Assembler.Processors
             FileStream fsBin;
             int p;
             string fname;
-            long longsize;
+            long fileSize;
+            int? readOffsetOpt = null;
+            int? sizeOpt = null;
 
-            /* get file name */
+            // get file name
             if ((fname = codePr.ReadStringFromPrLnBuf(ref ip, 127)) == null) return;
 
-            /* get file extension */
+            // get read offset and size option parameter
+            if (ctx.PrLnBuf[ip] == ',')
+            {
+                ip++;
+                if (exprPr.Evaluate(ref ip, (char)0) == 0) return;
+                if ((int)ctx.Value < 0)
+                {
+                    outPr.Error("INCBIN: Second argument(read offset) value must be >= 0!");
+                    return;
+                }
+                readOffsetOpt = (int)ctx.Value;
+
+                if (ctx.PrLnBuf[ip] == ',')
+                {
+                    ip++;
+                    if (exprPr.Evaluate(ref ip, (char)0) == 0) return;
+                    if ((int)ctx.Value < 0)
+                    {
+                        outPr.Error("INCBIN: Third argument(read size) value must be >= 0!");
+                        return;
+                    }
+                    sizeOpt = (int)ctx.Value;
+                }
+            }
+
+            /*
+             * Current version of NesAsmSharp not support PCE.
+             *
+            // get file extension
             if ((p = fname.LastIndexOf('.')) >= 0)
             {
                 if (fname.IndexOf(Path.DirectorySeparatorChar, p) < 0)
                 {
-                    /* check if it's a mx file */
+                    // check if it's a mx file
                     if (fname.Substring(p).ToLower() == ".mx")
                     {
-                        DoMx(fname);
-                        return;
+                        // DoMx(fname);
+                        // return;
                     }
-                    /* check if it's a map file */
+                    // check if it's a map file
                     if (fname.Substring(p).ToLower() == ".fmp")
                     {
                         // if (pce_load_map(fname_str, 0))
                         //     return;
-                        throw new PCENotImplementedException();
                     }
                 }
             }
+            */
 
-            /* define label */
+            // define label
             symPr.AssignValueToLablPtr(ctx.LocCnt, true);
 
-            /* output */
+            // output
             if (ctx.Pass == PassFlag.LAST_PASS)
             {
                 outPr.LoadLc(ctx.LocCnt, 0);
             }
 
-            /* open file */
+            // open file
             var targetName = inPr.FindFileByIncPath(fname);
             if (targetName == null)
             {
@@ -610,7 +636,7 @@ namespace NesAsmSharp.Assembler.Processors
                 }
                 fsBin = new FileStream(targetName, FileMode.Open, FileAccess.Read);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 outPr.FatalError($"Can not open file '{targetName}'!");
                 return;
@@ -621,22 +647,57 @@ namespace NesAsmSharp.Assembler.Processors
             {
                 try
                 {
-                    /* get file size */
-                    longsize = fsBin.Length;
-
-                    /* check if it will fit in the rom */
-                    if (((ctx.Bank << 13) + ctx.LocCnt + longsize) > ctx.RomLimit)
+                    if (readOffsetOpt != null)
                     {
-                        outPr.Error("ROM overflow!");
-                        return;
+                        fsBin.Seek((int)readOffsetOpt, SeekOrigin.Begin);
                     }
 
-                    size = (int)longsize;
-                    /* load data on last pass */
+                    // get file size
+                    fileSize = fsBin.Length;
+
+                    if (readOffsetOpt != null)
+                    {
+                        fileSize = fileSize - (int)readOffsetOpt;
+
+                        if (fileSize < 0)
+                        {
+                            outPr.FatalError("Read offset out of range!");
+                            return;
+                        }
+                    }
+
+                    if (sizeOpt == null)
+                    {
+                        // check if it will fit in the rom
+                        if (((ctx.Bank << 13) + ctx.LocCnt + fileSize) > ctx.RomLimit)
+                        {
+                            outPr.Error("ROM overflow!");
+                            return;
+                        }
+
+                        size = (int)fileSize;
+                    }
+                    else
+                    {
+                        // check if it will fit in the rom
+                        if (((ctx.Bank << 13) + ctx.LocCnt + (int)sizeOpt) > ctx.RomLimit)
+                        {
+                            outPr.Error("ROM overflow!");
+                            return;
+                        }
+                        size = (int)sizeOpt;
+                    }
+
+                    // load data on last pass
                     if (ctx.Pass == PassFlag.LAST_PASS)
                     {
                         var buf = new byte[size];
-                        fsBin.Read(buf, 0, size);
+                        var readbyte = fsBin.Read(buf, 0, size);
+                        if (readbyte != size)
+                        {
+                            outPr.FatalError($"read size error! (expected=${size:X} bytes, actual=${readbyte:X} bytes)");
+                            return;
+                        }
 
                         var _bank = ctx.Bank;
                         var _loc = ctx.LocCnt;
@@ -656,18 +717,18 @@ namespace NesAsmSharp.Assembler.Processors
                             }
                         }
 
-                        /* output line */
+                        // output line
                         outPr.PrintLn();
                     }
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     outPr.FatalError($"file '{targetName}' read error!");
                     return;
                 }
             }
 
-            /* update bank and location counters */
+            // update bank and location counters
             ctx.Page = ((ctx.LocCnt + size) / 0x2000 + ctx.Page) & 0x07;
             ctx.Bank += (ctx.LocCnt + size) >> 13;
             ctx.LocCnt = (ctx.LocCnt + size) & 0x1FFF;
@@ -683,7 +744,7 @@ namespace NesAsmSharp.Assembler.Processors
                 }
             }
 
-            /* size */
+            // size
             if (ctx.LablPtr != null)
             {
                 ctx.LablPtr.DataType = AsmDirective.P_INCBIN;
@@ -839,7 +900,7 @@ namespace NesAsmSharp.Assembler.Processors
                         }
                     }
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     outPr.FatalError($"file '{fname}' read error!");
                     return;
