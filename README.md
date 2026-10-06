@@ -1,5 +1,50 @@
 # NesAsmSharp
 
+## Rust版
+
+既存のC#版を残したまま、Rustのアセンブラ、CLI、stdio接続のMCPサーバを追加しています。
+Windows・Linux・macOS（Apple Silicon／Intel）をGitHub Actionsでビルド・テストし、
+Windowsでは元のC#ソースとの互換性比較も実行します。
+
+```sh
+cargo build --workspace --release --locked
+cargo test --workspace --locked
+cargo run -p nesasm-cli -- example.asm
+cargo run -p nesasm-cli -- -e SJIS example.asm
+cargo run -p nesasm-cli -- --check --json example.asm
+cargo run -p nesasm-mcp -- --root /absolute/path/to/project
+```
+
+実行ファイルは `target/release/nesasm` と `target/release/nesasm-mcp`
+（Windowsでは `.exe`）です。Rustのバージョンは `rust-toolchain.toml` で固定しています。
+**Rust版の既定文字コードはUTF-8**です。従来のShift-JIS入力には `-e SJIS` を指定してください。
+
+MCPクライアントの設定例（実行ファイルとプロジェクトのパスは環境に合わせて変更）:
+
+```json
+{
+  "mcpServers": {
+    "nesasm": {
+      "command": "C:/path/to/nesasm-mcp.exe",
+      "args": ["--root", "C:/path/to/project"]
+    }
+  }
+}
+```
+
+- `check`: 入力を検証し、診断・シンボル・バンク／領域使用量を返します。ファイルは書き込みません。
+- `assemble`: 同じアセンブラでROMと指定された付随ファイルを生成します。
+- `get_reference`: 命令・ディレクティブ・式・オプションの説明を取得します。
+
+`check` / `assemble` の引数例: `{"input":"main.asm","options":{"encoding":"sjis","auto_zp":true}}`。
+`assemble` には `output`、両ツールには `include_paths` も指定できます。
+MCPの入力・依存ファイル・出力先は起動時の `--root` 内に制限されます。
+
+移植の構成、互換性上の注意点、比較検証の手順は [Rust版の詳細](docs/rust.md)、
+構文は [リファレンス](docs/reference/index.md) を参照してください。
+
+## 既存C#版
+
 C言語で書かれたNESアセンブラ"nesasm"をC#に移植したものです。
 
 以下で公開されているバージョン2.51p beta3のソースを移植元としています。
