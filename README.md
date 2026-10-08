@@ -1,6 +1,10 @@
 # NesAsmSharp
 
-## Rust版
+> **Rust版は [NesAsmRs](https://github.com/rock5easily/NesAsmRs) に移りました。**
+> 以降の開発は NesAsmRs で行います。このブランチ（`rustdev`）のRust版は移行時点のもので、更新しません。
+> 開発の履歴は NesAsmRs に引き継いでいます。
+
+## Rust版（移行時点）
 
 既存のC#版を残したまま、Rustのアセンブラ、CLI、stdio接続のMCPサーバを追加しています。
 Windows・Linux・macOS（Apple Silicon／Intel）をGitHub Actionsでビルド・テストし、
