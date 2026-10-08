@@ -36,6 +36,9 @@ MCPクライアントの設定例（実行ファイルとプロジェクトの�
 - `assemble`: 同じアセンブラでROMと指定された付随ファイルを生成します。
 - `get_reference`: 命令・ディレクティブ・式・オプションの説明を取得します。
 
+同じリファレンス文書をMCPのresourcesとしても公開します（`nesasm://reference/index`、
+`instructions`、`directives`、`expressions`、`options`、いずれも `text/markdown`）。
+
 `check` / `assemble` の引数例: `{"input":"main.asm","options":{"encoding":"sjis","auto_zp":true}}`。
 `assemble` には `output`、両ツールには `include_paths` も指定できます。
 MCPの入力・依存ファイル・出力先は起動時の `--root` 内に制限されます。
