@@ -34,7 +34,15 @@ MCPクライアントの設定例（実行ファイルとプロジェクトの�
 
 - `check`: 入力を検証し、診断・シンボル・バンク／領域使用量を返します。ファイルは書き込みません。
 - `assemble`: 同じアセンブラでROMと指定された付随ファイルを生成します。
+- `inspect_rom`: ROMのiNESヘッダ・割り込みベクタ・起動しない原因の警告を返し、指定範囲の
+  16進ダンプと逆アセンブル（NESASM構文、シンボル名付き）も返します。対象はルート内のROMファイル、
+  またはメモリ上でアセンブルしたプロジェクトです。
 - `get_reference`: 命令・ディレクティブ・式・オプションの説明を取得します。
+
+`check`／`assemble`／`inspect_rom` は、ファイルの代わりにソースの文字列を `sources` で受け取れます
+（`{"input":"main.asm","sources":{"main.asm":"...","lib.asm":"..."}}`）。ディスク上のファイルより優先し、
+書き込みはしません。`check`／`assemble` に `lines` を指定すると、各行のファイル・行番号・バンク・
+CPUアドレス・出力バイトを、ファイル・行範囲・バンク・アドレス範囲で絞り込み、ページ単位で返します。
 
 同じリファレンス文書をMCPのresourcesとしても公開します（`nesasm://reference/index`、
 `instructions`、`directives`、`expressions`、`options`、いずれも `text/markdown`）。
