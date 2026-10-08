@@ -39,6 +39,8 @@ MCPクライアントの設定例（実行ファイルとプロジェクトの�
 `check` / `assemble` の引数例: `{"input":"main.asm","options":{"encoding":"sjis","auto_zp":true}}`。
 `assemble` には `output`、両ツールには `include_paths` も指定できます。
 MCPの入力・依存ファイル・出力先は起動時の `--root` 内に制限されます。
+出力先は `.nes`／`.bin` のROMとその付随ファイルに限られ、`.git` などの隠しディレクトリには書き込みません。
+1回のアセンブルは既定30秒で打ち切られます（`--timeout <秒>` で変更）。
 
 移植の構成、互換性上の注意点、比較検証の手順は [Rust版の詳細](docs/rust.md)、
 構文は [リファレンス](docs/reference/index.md) を参照してください。
